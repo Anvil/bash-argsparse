@@ -129,6 +129,9 @@ ARGSPARSE_INTERNAL_VERSION=1.0
 #   equivalent like -s, then prefix the letter by an equal '=' char.
 typeset -A __argsparse_options_descriptions=()
 
+# The program name
+__argsparse_pgm="${0##*/}"
+
 # Some generic functions
 __argsparse_index_of() {
     # Verifies if a key belongs to an array
@@ -281,7 +284,7 @@ usage() {
 	# their descriptions.
 	# There's a lot of room for improvement here.
 	local optstring long short description format sep
-	printf "%s " "$PGM"
+	printf "%s " "$__argsparse_pgm"
 	for optstring in "${!__argsparse_options_descriptions[@]}"
 	do
 		printf -- "[ --%s " "$(_argsparse_optstring_long_name "$optstring")"
@@ -381,7 +384,7 @@ __argsparse_parse_options_no_usage() {
 	longs="$(__args_parse_join_array , "${longs_array[@]}")"
 
 	# Invoke getopt.
-	if ! getopt_temp=$(getopt -s bash -n "$PGM" \
+	if ! getopt_temp=$(getopt -s bash -n "$__argsparse_pgm" \
 		--longoptions="$longs" "$shorts" "$@")
 	then
 		# Syntax error on the command implies returning with error.
@@ -405,7 +408,8 @@ __argsparse_parse_options_no_usage() {
 			then
 				for option in "${__argsparse_mandatory_options[@]}"
 				do
-					printf "%s: --%s: option is mandatory.\n" "$PGM" "$option"
+					printf "%s: --%s: option is mandatory.\n" \
+						"$__argsparse_pgm" "$option"
 				done
 				return 1
 			fi
@@ -422,7 +426,7 @@ __argsparse_parse_options_no_usage() {
 				# current implementation, this should be considered as
 				# a bug.
 				printf "%s: -%s: option doesnt have any matching long option." \
-					"$PGM" "$next_param" >&2
+					"$__argsparse_pgm" "$next_param" >&2
 				return 1
 			fi
 			next_param="${short_options[$next_param]}"
@@ -453,7 +457,7 @@ __argsparse_parse_options_no_usage() {
 					"${!possible_values}" >/dev/null
 				then
 					printf "%s: %s: Invalid value for %s option.\n" \
-						"$PGM" "$value" "$next_param"
+						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
 			elif declare -f "check_value_of_$next_param" >/dev/null 2>&1
@@ -461,7 +465,7 @@ __argsparse_parse_options_no_usage() {
 				if ! "check_value_of_$next_param" "$value"
 				then
 					printf "%s: %s: Invalid value for %s option.\n" \
-						"$PGM" "$value" "$next_param"
+						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
 			fi
@@ -486,7 +490,7 @@ __argsparse_parse_options_no_usage() {
 		if ! "$set_hook" "$next_param" ${value+"$value"}
 		then
 			printf "%s: %s: Invalid value for %s option.\n" \
-				"$PGM" "$value" "$next_param"
+				"$__argsparse_pgm" "$value" "$next_param"
 			return 1
 		fi
 	done
