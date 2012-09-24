@@ -575,6 +575,7 @@ argsparse_use_option() {
 				program_options["$long_name"]=$1
 				;;
 		esac
+		shift
 	done
 }
 
