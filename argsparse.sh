@@ -287,12 +287,14 @@ usage() {
 	printf "%s " "$__argsparse_pgm"
 	for optstring in "${!__argsparse_options_descriptions[@]}"
 	do
-		printf -- "[ --%s " "$(_argsparse_optstring_long_name "$optstring")"
+		long="$(_argsparse_optstring_long_name "$optstring")"
+		argsparse_is_option_mandatory "$long" || printf "[ "
+		printf -- "--%s " "$long"
 		if _argsparse_optstring_expect_value "$optstring"
 		then
 			printf "arg "
 		fi
-		printf "] "
+		argsparse_is_option_mandatory "$long" || printf "] "
 	done
 	printf "\n"
 	for optstring in "${!__argsparse_options_descriptions[@]}"
