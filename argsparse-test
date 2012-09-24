@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+
+PATH=".:$PATH"
+
+. argsparse.sh
+
+argsparse_use_option "=john" "Doe parameter" doh
+argsparse_use_option "=Albert:" "Einstein parameter" mandatory
+argsparse_use_option "ja=son" "Bourne Parameter"
+argsparse_parse_options "$@"
+
+printf "Script options are:\n"
+for i in "${!program_options[@]}"
+do
+	printf "%s: %s\n" "$i" "${program_options[$i]}"
+done
+printf "Other script parameters are: %s\n" "${program_params[*]}"
