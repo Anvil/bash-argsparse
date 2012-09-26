@@ -132,6 +132,21 @@ typeset -A __argsparse_options_descriptions=()
 # The program name
 __argsparse_pgm="${0##*/}"
 
+
+# The default minimum parameters requirement for command line.
+__argsparse_minimum_parameters=0
+
+argsparse_minimum_parameters() {
+	# Set the minimum number of non-option parameters expected on the
+	# command line. (the __argsparse_minimum_parameters value)
+	# @param a positive number.
+	[[ $# -ne 1 ]] && return 1
+	local min=$1
+	[[ "$min" != +([0-9]) ]] && return 1
+	__argsparse_minimum_parameters=$min
+}
+
+
 # Some generic functions
 __argsparse_index_of() {
     # Verifies if a key belongs to an array
@@ -416,6 +431,16 @@ __argsparse_parse_options_no_usage() {
 		# The regular exit case.
 		if [[ "$next_param" = -- ]]
 		then
+			# Check how many parameters we have and if it's at least
+			# what we expects.
+			if [[ $# -lt "$__argsparse_minimum_parameters" ]]
+			then
+				printf \
+					"%s: not enough parameters (at least %d expected, %d provided)\n" \
+					"$__argsparse_pgm" "$__argsparse_minimum_parameters" $#
+					
+				return 1
+			fi
 			# Save program parameters in array
 			program_params=( "$@" )
 			# If some mandatory option have been omited by the user, then
