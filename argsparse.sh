@@ -336,6 +336,7 @@ _usage_short() {
 		fi
 		argsparse_is_option_mandatory "$long" || printf "] "
 	done
+	printf "\n"
 }
 
 _usage_long() {
@@ -373,6 +374,8 @@ usage() {
 	printf "\n"
 	# This will print option descriptions.
 	_usage_long
+	[[ -n "argsparse_usage_description" ]] && \
+		printf "\n%s\n" "$argsparse_usage_description"
 	exit 1
 }
 
