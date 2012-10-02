@@ -677,7 +677,7 @@ argsparse_use_option() {
 	done
 }
 
-argsparse_option_is_set() {
+argsparse_is_option_set() {
 	# @param an option name
 	# @return 0 if given option has been set on the command line.
 	[[ $# -ne 1 ]] && return 1
