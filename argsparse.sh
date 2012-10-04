@@ -172,7 +172,7 @@ __argsparse_index_of() {
     # prints the found index.
     # Else doesnt print anything and returns 1
     [ $# -lt 2 ] && return 1
-    local key="$1" ; shift
+    local key=$1 ; shift
     local index=0
     local elem
 
@@ -198,65 +198,10 @@ __argsparse_join_array() {
 
 
 
-_argsparse_optstring_expect_value() {
-	# Returns 0 if given optstring will declare an option which
-	# expects an value.
-	local optstring="$1"
-	[[ "$optstring" = *: ]]
-}
-
 argsparse_option_to_identifier() {
 	local option=$1
 	printf "%s" "${option//-/_}"
 }
-
-# The 4 following functions are optstring conversion functions.
-
-_argsparse_optstring_getopt_long() {
-	# Prints the long option string suitable for the getopt
-	# --longoption value.
-	local optstring="${1//=/}"
-	printf -- "%s" "$optstring"
-}
-
-_argsparse_optstring_getopt_short() {
-	# Prints the short option string suitable for getopt command line.
-	# Returns non-zero if given optstring doesnt have any short option
-	# equivalent.
-	local optstring="$1"
-	local short
-	if [[ "$optstring" != *=* ]]
-	then
-		return 1
-	fi
-	short=${optstring##*=}
-	short=${short:0:1}
-	if [[ "$optstring" = *: ]]
-	then
-		short="$short:"
-	fi
-	printf "%s" "$short"
-	return 0
-}
-
-_argsparse_optstring_long_name() {
-	# Prints the long 'canonical' name of the given optstring.
-	local optstring="$(_argsparse_optstring_getopt_long "$1")"
-	printf -- "%s" "${optstring%:}"
-}
-
-_argsparse_optstring_short_name() {
-	# Prints the short 'canonical' name of the given optstring, if
-	# appropriate. Should be a single letter.
-	local optstring="$1"
-	local short
-	if ! short=$(_argsparse_optstring_getopt_short "$optstring")
-	then
-		return 1
-	fi
-	printf -- "%s" "${short%:}"
-}
-
 
 # Following functions define the default option-setting hook and its
 # with/without value counter-parts. They can be referered in external
@@ -265,15 +210,6 @@ _argsparse_optstring_short_name() {
 
 # All user-defined option-setting hook should be defined like
 # argsparse_set_option
-
-
-_argsparse_option_has_value() {
-	# Returns 0 if first parameter is a option that accept a value on
-	# the command line.
-	[ $# -ne 1 ] && return 1
-	local option=$1
-	__argsparse_index_of "$option" "${options_with_values[@]}" >/dev/null
-}
 
 argsparse_set_option_without_value() {
 	# The default action to take for options without values.
@@ -299,7 +235,7 @@ argsparse_set_option() {
 	local option=$1
 	[[ $# -eq 2 ]] && local value=$2
 
-	if _argsparse_option_has_value "$option"
+	if argsparse_has_option_property "$option" value
 	then
 		argsparse_set_option_with_value "$option" "$value"
 	else
@@ -318,13 +254,15 @@ set_option_help() {
 _usage_short() {
 	local optstring long values
 	printf "%s " "$__argsparse_pgm"
-	for optstring in "${!__argsparse_options_descriptions[@]}"
+	for long in "${!__argsparse_options_descriptions[@]}"
 	do
-		long="$(_argsparse_optstring_long_name "$optstring")"
-		argsparse_is_option_hidden "$long" && continue
-		argsparse_is_option_mandatory "$long" || printf "[ "
+		if argsparse_has_option_property "$long" hidden 
+		then
+			continue
+		fi
+		argsparse_has_option_property "$long" mandatory || printf "[ "
 		printf -- "--%s " "$long"
-		if _argsparse_optstring_expect_value "$optstring"
+		if argsparse_has_option_property "$long" value
 		then
 			if __argsparse_option_has_declared_values "$long"
 			then
@@ -334,17 +272,25 @@ _usage_short() {
 				printf "arg "
 			fi
 		fi
-		argsparse_is_option_mandatory "$long" || printf "] "
+		argsparse_has_option_property "$long" mandatory || printf "] "
 	done
 	printf "\n"
 }
 
 _usage_long() {
-	local optstring long short sep format
-	for optstring in "${!__argsparse_options_descriptions[@]}"
+	local long short sep format
+	local -A long_to_short=()
+	for short in "${!__argsparse_short_options[@]}"
 	do
-		long="$(_argsparse_optstring_long_name "$optstring")"
-		argsparse_is_option_hidden "$long" && continue
+		long=${__argsparse_short_options["$short"]}
+		long_to_short["$long"]=$short
+	done
+	for long in "${!__argsparse_options_descriptions[@]}"
+	do
+		if argsparse_has_option_property "$long" hidden 
+		then
+			continue
+		fi
 		# Pretty printer issue here. If the long option length is
 		# greater than 8, we just use next line to print the option
 		# description.
@@ -355,14 +301,15 @@ _usage_long() {
 			sep='\n\t\t\t'
 		fi
 		# Define format according to the presence of the short option.
-		if short="$(_argsparse_optstring_short_name "$optstring")"
+		short=${long_to_short["$long"]}
+		if [[ -n "$short" ]]
 		then
 		    format="\t-%s | --%s$sep%s\n"
 		else
 		    format="\t%s     --%s$sep%s\n"
 		fi
 		printf "$format" "$short" "$long" \
-			"${__argsparse_options_descriptions["$optstring"]}"
+			"${__argsparse_options_descriptions["$long"]}"
 	done
 }
 
@@ -374,7 +321,7 @@ usage() {
 	printf "\n"
 	# This will print option descriptions.
 	_usage_long
-	[[ -n "argsparse_usage_description" ]] && \
+	[[ -n "$argsparse_usage_description" ]] && \
 		printf "\n%s\n" "$argsparse_usage_description"
 	exit 1
 }
@@ -413,8 +360,6 @@ __argsparse_parse_options_no_usage() {
 	local optstring long short getopt_temp next_param set_hook
 	local possible_values next_param_identifier
 	local -a longs_array options_with_values
-	# Association short option -> long option.
-	local -A short_options
 	# The getopt parameters.
 	local longs shorts option
 
@@ -424,29 +369,31 @@ __argsparse_parse_options_no_usage() {
 		return 1
 	fi
 
-	# Analyze declared options to create getopt valid arguments.
-	for optstring in "${!__argsparse_options_descriptions[@]}"
+	# 1. Analyze declared options to create getopt valid arguments.
+	for long in "${!__argsparse_options_descriptions[@]}"
 	do
-		# 1. Feed getopt. (long)
-		longs_array+=( $(_argsparse_optstring_getopt_long "$optstring") )
-		long=$(_argsparse_optstring_long_name "$optstring")
-		# 2. Check for options with/without value
-		if _argsparse_optstring_expect_value "$optstring"
+		if argsparse_has_option_property "$long" value
 		then
-			options_with_values+=( "$long" )
-		fi
-		# 3. If it has a shorten alternative, configure it.
-		if short=$(_argsparse_optstring_getopt_short "$optstring")
-		then
-			# 3.1 Feed getopt. (short)
-			shorts="$shorts$short"
-			# 3.2 Connect short name to long name.
-			short_options[$(_argsparse_optstring_short_name "$optstring")]=$long
+			longs_array+=( "$long:" )
+		else
+			longs_array+=( "$long" )
 		fi
 	done
 
-	# Create the long optstring.
+	# 2 Create the long optstring.
 	longs="$(__argsparse_join_array , "${longs_array[@]}")"
+
+	# 3. If it has a shorten alternative, configure it.
+	for short in "${!__argsparse_short_options[@]}"
+	do
+		if argsparse_has_option_property \
+			"${__argsparse_short_options[$short]}" value
+		then
+			shorts="$shorts$short:"
+		else
+			shorts="$shorts$short"
+		fi
+	done
 
 	# Invoke getopt.
 	if ! getopt_temp=$(getopt -s bash -n "$__argsparse_pgm" \
@@ -479,23 +426,15 @@ __argsparse_parse_options_no_usage() {
 			program_params=( "$@" )
 			# If some mandatory option have been omited by the user, then
 			# print some error, and invoke usage.
-			if [[ "${#__argsparse_mandatory_options[@]}" -ne 0 ]]
-			then
-				for option in "${__argsparse_mandatory_options[@]}"
-				do
-					printf "%s: --%s: option is mandatory.\n" \
-						"$__argsparse_pgm" "$option"
-				done
-				return 1
-			fi
-			return 0
+			__argsparse_check_missing_options "${!program_options[@]}"
+			return 
 		fi
 		# If a short option was given, then we first convert it to its
 		# matching long name.
 		if [[ "$next_param" = -[!-] ]]
 		then
 			next_param=${next_param#-}
-			if [[ -z "${short_options[$next_param]}" ]]
+			if [[ -z "${__argsparse_short_options[$next_param]}" ]]
 			then
 				# Short option without equivalent long. According to
 				# current implementation, this should be considered as
@@ -504,7 +443,7 @@ __argsparse_parse_options_no_usage() {
 					"$__argsparse_pgm" "$next_param" >&2
 				return 1
 			fi
-			next_param="${short_options[$next_param]}"
+			next_param="${__argsparse_short_options[$next_param]}"
 		else
 			# Wasnt a short option. Just strip the leading dash.
 			next_param="${next_param#--}"
@@ -512,11 +451,8 @@ __argsparse_parse_options_no_usage() {
 		# The "identifier string" matching next_param, suitable for
 		# variable or function names.
 		next_param_identifier="$(argsparse_option_to_identifier "$next_param")"
-		# If option is considered as mandatory on the command line,
-		# consider it found.
-		__argsparse_found_mandatory_option "$next_param"
 		# Set option value, if there should be one.
-		if _argsparse_option_has_value "$next_param"
+		if argsparse_has_option_property "$next_param" value
 		then
 			value=$1
 			shift
@@ -588,60 +524,57 @@ argsparse_reset() {
 	program_params=()
 }
 
+
+# Option properties
+
+typeset -A __argsparse_option_properties=()
+
+argsparse_set_option_property() {
+	local option=$1
+	local property=$2
+	local p=${__argsparse_option_properties["$option"]}
+	__argsparse_option_properties[$option]="${p:+$p,}$property"
+}
+
+argsparse_has_option_property() {
+	local option=$1
+	local property=$2
+	local p=${__argsparse_option_properties["$option"]}
+	[[ "$p" =~ (^|.+,)"$property"($|,.+) ]]
+}
+
 # Mandatory keyword handling
-typeset -a __argsparse_mandatory_options=()
-
-__argsparse_found_mandatory_option() {
-	local option=$1
-	local o
-	local -a remaining_mandatory_option=()
-	for o in "${__argsparse_mandatory_options[@]}"
+__argsparse_check_missing_options() {
+	local option count=0
+	for option in "${!__argsparse_options_descriptions[@]}"
 	do
-		[[ "$option" = "$o" ]] && continue
-		remaining_mandatory_option+=("$o")
+		argsparse_has_option_property "$option" mandatory || continue
+		# If option has been given, just iterate.
+		__argsparse_index_of "$option" "$@" >/dev/null && continue
+		printf "%s: --%s: option is mandatory.\n" \
+			"$__argsparse_pgm" "$option"
+		: $((count++))
 	done
-	__argsparse_mandatory_options=( "${remaining_mandatory_option[@]}" )
-}
-
-argsparse_set_option_mandatory() {
-	# @params all given long option name will be considered as
-	# mandatory. If a mandatory option is not found on the command
-	# line, the usage function will be ran.
-	local option
-	for option in "$@"
-	do
-		argsparse_is_option_mandatory "$option" && continue
-		__argsparse_mandatory_options+=("$option")
-	done
-	return 0
-}
-
-argsparse_is_option_mandatory() {
-	local option=$1
-	__argsparse_index_of "$option" \
-		"${__argsparse_mandatory_options[@]}" >/dev/null
+	[[ $count -eq 0 ]]
 }
 # End of Mandatory keyword handling
 
-# Hidden keyword handling
-typeset -a __argsparse_hidden_options=()
+# Association short option -> long option.
+typeset -A __argsparse_short_options=()
+# ??
 
-argsparse_set_option_hidden() {
-	local option
-	for option in "$@"
-	do
-		argsparse_is_option_hidden "$option" && continue
-		__argsparse_hidden_options+=("$option")
-	done
+_argsparse_optstring_has_short() {
+	# Prints the short option string suitable for getopt command line.
+	# Returns non-zero if given optstring doesnt have any short option
+	# equivalent.
+	local optstring=$1
+	if [[ "$optstring" =~ .*=(.).* ]]
+	then
+		printf "%c" "${BASH_REMATCH[1]}"
+		return 0
+	fi
+	return 1
 }
-
-argsparse_is_option_hidden() {
-	local option=$1
-	__argsparse_index_of "$option" \
-		"${__argsparse_hidden_options[@]}" >/dev/null
-}
-
-# End of Hidden keyword handling
 
 argsparse_use_option() {
 	# Define a new optstring.
@@ -651,26 +584,46 @@ argsparse_use_option() {
 	#   * mandatory: missing option will trigger usage. If a default
 	#     value is given, the option is considered as if provided on
 	#     the command line.
-	#   * 
+	#   * hidden: option wont show in default usage function.
+	#   * value: option expects a following value.
+	#   * short:c: option has a single-lettered (c) equivalent.
 	#   * The *last* non-keyword parameter will be considered as the
 	#     default value for the option. All other parameters and
 	#     values will be ignored.
 	[[ $# -ge 2 ]] || return 1
 	local optstring=$1
 	local description=$2
-	__argsparse_options_descriptions["$optstring"]="$description"
-	[[ $# -le 2 ]] && return 0
 	shift 2
-	local long_name="$(_argsparse_optstring_long_name "$optstring")"
+	local long short
+	# configure short option.
+	if short=$(_argsparse_optstring_has_short "$optstring")
+	then
+		set -- short:$short "$@"
+		optstring=${optstring/=/}
+	fi
+	# --$optstring expect an argument.
+	if [[ "$optstring" = *: ]]
+	then
+		set -- value "$@"
+		long=${optstring%:}
+	else
+		long=$optstring
+	fi
+
+	__argsparse_options_descriptions["$long"]="$description"
+
 	while [[ $# -ne 0 ]]
 	do
 		case "$1" in
-			mandatory|hidden)
-				"argsparse_set_option_$1" "$long_name"
+			mandatory|hidden|value)
+				argsparse_set_option_property "$long" "$1"
+				;;
+			short:?)
+				__argsparse_short_options[${1#short:}]=$long
 				;;
 			*)
 				# The default value
-				program_options["$long_name"]=$1
+				program_options["$long"]=$1
 				;;
 		esac
 		shift
@@ -681,7 +634,7 @@ argsparse_is_option_set() {
 	# @param an option name
 	# @return 0 if given option has been set on the command line.
 	[[ $# -ne 1 ]] && return 1
-	local option="$1"
+	local option=$1
 	__argsparse_index_of "$option" "${!program_options[@]}" >/dev/null
 }
 
