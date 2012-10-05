@@ -530,10 +530,13 @@ argsparse_reset() {
 typeset -A __argsparse_option_properties=()
 
 argsparse_set_option_property() {
-	local option=$1
-	local property=$2
-	local p=${__argsparse_option_properties["$option"]}
-	__argsparse_option_properties[$option]="${p:+$p,}$property"
+	local property=$1
+	local option p
+	for option in "$@"
+	do
+		p=${__argsparse_option_properties["$option"]}
+		__argsparse_option_properties[$option]="${p:+$p,}$property"
+	done
 }
 
 argsparse_has_option_property() {
@@ -616,10 +619,18 @@ argsparse_use_option() {
 	do
 		case "$1" in
 			mandatory|hidden|value)
-				argsparse_set_option_property "$long" "$1"
+				argsparse_set_option_property "$1" "$long"
 				;;
 			short:?)
-				__argsparse_short_options[${1#short:}]=$long
+				short=${1#short:}
+				if [[ -z "${__argsparse_short_options[$short]}" ]]
+				then
+					printf "%s: %s: short option for %s conflicts with already-configured short option for %s. Aborting.\n" \
+						"$__argsparse_pgm" "$short" "$long" \
+						"${__argsparse_short_options[$short]}"
+					exit 1
+				fi
+				__argsparse_short_options[$short]=$long
 				;;
 			*)
 				# The default value
