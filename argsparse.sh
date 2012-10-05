@@ -623,7 +623,7 @@ argsparse_use_option() {
 				;;
 			short:?)
 				short=${1#short:}
-				if [[ -z "${__argsparse_short_options[$short]}" ]]
+				if [[ -n "${__argsparse_short_options[$short]}" ]]
 				then
 					printf "%s: %s: short option for %s conflicts with already-configured short option for %s. Aborting.\n" \
 						"$__argsparse_pgm" "$short" "$long" \
