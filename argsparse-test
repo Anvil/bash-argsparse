@@ -9,7 +9,7 @@ argsparse_use_option "john" "Doe parameter" doh short:o
 argsparse_use_option "=Albert:" "Einstein parameter" mandatory
 option_Albert_values=( E MC 2 )
 argsparse_use_option "ja=son" "Bourne Parameter"
-argsparse_use_option "=Hidden" "Some hidden option" hidden mandatory
+argsparse_use_option "=Hidden" "Some hidden option" hidden mandatory value
 argsparse_parse_options "$@"
 
 printf "Script options are:\n"
