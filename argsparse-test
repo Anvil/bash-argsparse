@@ -5,7 +5,7 @@ PATH=".:$PATH"
 
 . argsparse.sh
 
-argsparse_use_option "=john" "Doe parameter" doh
+argsparse_use_option "john" "Doe parameter" doh short:o
 argsparse_use_option "=Albert:" "Einstein parameter" mandatory
 option_Albert_values=( E MC 2 )
 argsparse_use_option "ja=son" "Bourne Parameter"
