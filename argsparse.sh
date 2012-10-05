@@ -196,8 +196,6 @@ __argsparse_join_array() {
        printf "%s" "$*"
 }
 
-
-
 argsparse_option_to_identifier() {
 	local option=$1
 	printf "%s" "${option//-/_}"
@@ -337,6 +335,19 @@ __argsparse_option_has_declared_values() {
 		"declare -"[aZ]" $possible_values='("* ]]
 }
 
+__argsparse_check_missing_options() {
+	local option count=0
+	for option in "${!__argsparse_options_descriptions[@]}"
+	do
+		argsparse_has_option_property "$option" mandatory || continue
+		# If option has been given, just iterate.
+		__argsparse_index_of "$option" "$@" >/dev/null && continue
+		printf "%s: --%s: option is mandatory.\n" \
+			"$__argsparse_pgm" "$option"
+		: $((count++))
+	done
+	[[ $count -eq 0 ]]
+}
 
 argsparse_parse_options() {
 	# This function will make option parsing happen, and if an error
@@ -530,6 +541,9 @@ argsparse_reset() {
 typeset -A __argsparse_option_properties=()
 
 argsparse_set_option_property() {
+	# Enable a property to a list of options.
+	# @param a property name.
+	# @params option names.
 	local property=$1
 	local option p
 	for option in "$@"
@@ -540,27 +554,14 @@ argsparse_set_option_property() {
 }
 
 argsparse_has_option_property() {
+	# @param an option name.
+	# @param a property name.
+	# @return 0 if option has given property.
 	local option=$1
 	local property=$2
 	local p=${__argsparse_option_properties["$option"]}
 	[[ "$p" =~ (^|.+,)"$property"($|,.+) ]]
 }
-
-# Mandatory keyword handling
-__argsparse_check_missing_options() {
-	local option count=0
-	for option in "${!__argsparse_options_descriptions[@]}"
-	do
-		argsparse_has_option_property "$option" mandatory || continue
-		# If option has been given, just iterate.
-		__argsparse_index_of "$option" "$@" >/dev/null && continue
-		printf "%s: --%s: option is mandatory.\n" \
-			"$__argsparse_pgm" "$option"
-		: $((count++))
-	done
-	[[ $count -eq 0 ]]
-}
-# End of Mandatory keyword handling
 
 # Association short option -> long option.
 typeset -A __argsparse_short_options=()
