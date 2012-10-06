@@ -59,6 +59,12 @@
 #	a mandatory option is omited by the user, usage will be triggered
 #	by argsparse_parse_options.
 #
+# * "value"
+#	Same effect if you end your optstring with a ":" char.
+#
+# * "short"
+#   To be described...
+#
 ##
 #
 # After the options are declared, invoke the function
@@ -117,7 +123,6 @@
 #
 # Known limitations and bugs:
 # * You cannot have a short option without a long option.
-# * The short option must have a common letter with the long option.
 # * Non-alphanumeric, non-underscore chars in option names
 #   could and will lead to trouble and failure.
 # * No verification is made to prevent 2 long options to have the same
@@ -565,7 +570,6 @@ argsparse_has_option_property() {
 
 # Association short option -> long option.
 typeset -A __argsparse_short_options=()
-# ??
 
 _argsparse_optstring_has_short() {
 	# Prints the short option string suitable for getopt command line.
@@ -602,7 +606,7 @@ argsparse_use_option() {
 	# configure short option.
 	if short=$(_argsparse_optstring_has_short "$optstring")
 	then
-		set -- short:$short "$@"
+		set -- "short:$short" "$@"
 		optstring=${optstring/=/}
 	fi
 	# --$optstring expect an argument.
