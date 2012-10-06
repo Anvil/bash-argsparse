@@ -373,17 +373,14 @@ __argsparse_parse_options_no_usage() {
 
 	# Be careful, the function is (too) big.
 
-	local optstring long short getopt_temp next_param set_hook
+	local long short getopt_temp next_param set_hook option_type
 	local possible_values next_param_identifier
-	local -a longs_array options_with_values
+	local -a longs_array
 	# The getopt parameters.
 	local longs shorts option
 
 	# No argument sends back to usage, if defined.
-	if [[ $# -eq 0 ]]
-	then
-		return 1
-	fi
+	[[ $# -eq 0 ]] && return 1
 
 	# 1. Analyze declared options to create getopt valid arguments.
 	for long in "${!__argsparse_options_descriptions[@]}"
@@ -396,10 +393,10 @@ __argsparse_parse_options_no_usage() {
 		fi
 	done
 
-	# 2 Create the long optstring.
+	# 2. Create the long options string.
 	longs="$(__argsparse_join_array , "${longs_array[@]}")"
 
-	# 3. If it has a shorten alternative, configure it.
+	# 3. Create the short option string.
 	for short in "${!__argsparse_short_options[@]}"
 	do
 		if argsparse_has_option_property \
@@ -411,7 +408,7 @@ __argsparse_parse_options_no_usage() {
 		fi
 	done
 
-	# Invoke getopt.
+	# 4. Invoke getopt and replace arguments.
 	if ! getopt_temp=$(getopt -s bash -n "$__argsparse_pgm" \
 		--longoptions="$longs" "$shorts" "$@")
 	then
@@ -420,7 +417,7 @@ __argsparse_parse_options_no_usage() {
 	fi
 	eval set -- "$getopt_temp"
 
-	# Arguments parsing is really made here.
+	# 5. Arguments parsing is really made here.
 	while :
 	do
 		next_param=$1
@@ -477,13 +474,28 @@ __argsparse_parse_options_no_usage() {
 			# (not in that order, though)
 			# This may be succeptible to evolution/change.
 			possible_values="option_${next_param_identifier}_values"
-			if __argsparse_option_has_declared_values $next_param
+			if __argsparse_option_has_declared_values "$next_param"
 			then
 				possible_values="$possible_values[@]"
 				if ! __argsparse_index_of "$value" \
 					"${!possible_values}" >/dev/null
 				then
 					printf "%s: %s: Invalid value for %s option.\n" \
+						"$__argsparse_pgm" "$value" "$next_param"
+					return 1
+				fi
+			elif option_type=$(argsparse_has_option_property "$next_param" type)
+			then
+				if ! declare -f "check_option_type_$option_type"
+				then
+					printf "%s: %s: type has no validation function. This is a bug.\n" \
+						"$__argsparse_pgm" "$option_type"
+					exit 1
+					
+				fi
+			 	if ! "check_option_type_$option_type" "$value"
+				then
+					printf "%s: %s: invalid value for %s.\n" \
 						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
@@ -549,23 +561,32 @@ argsparse_set_option_property() {
 	# Enable a property to a list of options.
 	# @param a property name.
 	# @params option names.
+	[[ $# -lt 2 ]] && return 1
 	local property=$1
+	shift
 	local option p
 	for option in "$@"
 	do
 		p=${__argsparse_option_properties["$option"]}
-		__argsparse_option_properties[$option]="${p:+$p,}$property"
+		__argsparse_option_properties["$option"]="${p:+$p,}$property"
 	done
 }
 
 argsparse_has_option_property() {
+	# Return 0 if property has been set for given option, and print
+	# the property value, if available.
 	# @param an option name.
 	# @param a property name.
 	# @return 0 if option has given property.
+	[[ $# -ne 2 ]] && return 1
 	local option=$1
 	local property=$2
 	local p=${__argsparse_option_properties["$option"]}
-	[[ "$p" =~ (^|.+,)"$property"($|,.+) ]]
+	if ! [[ "$p" =~ (^|.+,)"$property"(:([^,]+))?($|,.+) ]]
+	then
+		return 1
+	fi
+	printf %s "${BASH_REMATCH[3]}"
 }
 
 # Association short option -> long option.
@@ -623,7 +644,7 @@ argsparse_use_option() {
 	while [[ $# -ne 0 ]]
 	do
 		case "$1" in
-			mandatory|hidden|value)
+			mandatory|hidden|value|type:*)
 				argsparse_set_option_property "$1" "$long"
 				;;
 			short:?)
@@ -635,7 +656,7 @@ argsparse_use_option() {
 						"${__argsparse_short_options[$short]}"
 					exit 1
 				fi
-				__argsparse_short_options[$short]=$long
+				__argsparse_short_options["$short"]=$long
 				;;
 			*)
 				# The default value
