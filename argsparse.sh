@@ -356,10 +356,10 @@ __argsparse_check_missing_options() {
 
 argsparse_check_option_type() {
 	# Check if a value matches a given type.
-	# @param a type
+	# @param a type. A type name is case insensitive.
 	# @param a value to check
 	# @returns 0 if the value matches the given type format.
-	local option_type=$1
+	local option_type=${1,,}
 	local value=$2
 	local t
 	case "$option_type" in
