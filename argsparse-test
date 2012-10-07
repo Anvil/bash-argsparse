@@ -5,10 +5,17 @@ PATH=".:$PATH"
 
 . argsparse.sh
 
-argsparse_use_option "john" "Doe parameter" doh short:o
+# A regular option, with no value.
+argsparse_use_option "ja=son" "Bourne Parameter"
+
+# An option, with a default value, and a short equivalent.
+argsparse_use_option "john:" "Doe parameter" doh short:o
+
+# An enumerated and mandatory option.
 argsparse_use_option "=Albert:" "Einstein parameter" mandatory
 option_Albert_values=( E MC 2 )
-argsparse_use_option "ja=son" "Bourne Parameter"
+
+# An hidden option, which wont show on --help.
 argsparse_use_option "=Hidden" "Some hidden option" hidden mandatory value
 
 # Type-testing options.
@@ -19,14 +26,17 @@ argsparse_use_option terminal: "A file descriptor pointing number to a terminal"
 argsparse_use_option socket: "An unix named socket" type:socket
 argsparse_use_option link: "A symbolic link name" type:link
 argsparse_use_option char: "A single char" type:char
+# type:unsignedint is the same as type:uint 
 argsparse_use_option unsignedint "An unsigned integer" type:uint
+# type:integer is the same as type:int
 argsparse_use_option int: "Just some random possibly negative integer" type:int
 argsparse_use_option hexa: "Some hexadecimal value" type:hexa
 argsparse_use_option IP: "An IP (either v4 *or* v6) address" type:ip
 argsparse_use_option IP4: "An IPv4 address" type:ipv4
 argsparse_use_option IP6: "An IPv6 address" type:ipv6
 argsparse_use_option host: "Some host" type:host
-argsparse_use_option hostname: "Some host name (not an IP)" type:hostname
+# Type names are case insensitive, by the way.
+argsparse_use_option hostname: "Some host name (not an IP)" type:hOsTnAmE
 
 # An example of a user-defined type-checking function.
 check_option_type_mytype() {
@@ -38,9 +48,10 @@ argsparse_use_option myoption "My typed custom option" type:mytype short:M value
 
 argsparse_parse_options "$@"
 
+# Print all options with their values.
 printf "Script options are:\n"
 for i in "${!program_options[@]}"
 do
-	printf "%s: %s\n" "$i" "${program_options[$i]}"
+	printf "% -15s: % 50s\n" "$i" "${program_options[$i]}"
 done
 printf "Other script parameters are: %s\n" "${program_params[*]}"
