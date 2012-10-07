@@ -354,6 +354,72 @@ __argsparse_check_missing_options() {
 	[[ $count -eq 0 ]]
 }
 
+argsparse_check_option_type() {
+	# Check if a value matches a given type.
+	# @param a type
+	# @param a value to check
+	# @returns 0 if the value matches the given type format.
+	local option_type=$1
+	local value=$2
+	local t
+	case "$option_type" in
+		file|directory|pipe|terminal)
+			# [[ wont accept the -$var as an operator.
+			[ -"${option_type:0:1}" "$value" ]
+			;;
+		socket|link)
+			t="${option_type:0:1}"
+			[ -"${t^^}" "$value" ]
+			;;
+		char)
+			[[ "$value" = ? ]]
+			;;
+		unsignedint|uint)
+			[[ "$value" = +([0-9]) ]]
+			;;
+		integer|int)
+			[[ "$value" = ?(-)+([0-9]) ]]
+			;;
+		hexa)
+			[[ "$value" = ?(0x)+([a-fA-F0-9]) ]]
+			;;
+		ipv4)
+			# Regular expression for ipv4 and ipv6 have been found on
+			# http://www.d-sites.com/2008/10/09/regex-ipv4-et-ipv6/
+			[[ "$value" =~ ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$ ]]
+			;;
+		ipv6)
+			[[ "$value" =~ ^((([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|(([0-9A-Fa-f]{1,4}:){0,5}:((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|(::([0-9A-Fa-f]{1,4}:){0,5}((b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b).){3}(b((25[0-5])|(1d{2})|(2[0-4]d)|(d{1,2}))b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))$ ]]
+			;;
+		ip)
+			# Generic IP address.
+			argsparse_check_option_type ipv4 "$value" || \
+				argsparse_check_option_type ipv6 "$value"
+			;;
+		hostname)
+			# check if value resolv as an IPv4 or IPv6 address.
+			host -t a "$value" >/dev/null 2>&1 || \
+				host -t aaaa "$value" >/dev/null 2>&1
+			;;
+		host)
+			# An hostname or an IP address.
+			argsparse_check_option_type hostname "$value" || \
+				argsparse_check_option_type ipv4 "$value" || \
+				argsparse_check_option_type ipv6 "$value"
+			;;
+		*)
+			# Invoke user-defined type-checking function if available.
+			if ! declare -f "check_option_type_$option_type"
+			then
+				printf "%s: %s: type has no validation function. This is a bug.\n" \
+					"$__argsparse_pgm" "$option_type"
+				exit 1
+			fi
+			"check_option_type_$option_type" "$value"
+			;;
+	esac
+}
+
 argsparse_parse_options() {
 	# This function will make option parsing happen, and if an error
 	# is detected, the usage function will be invoked, if it has been
@@ -486,14 +552,7 @@ __argsparse_parse_options_no_usage() {
 				fi
 			elif option_type=$(argsparse_has_option_property "$next_param" type)
 			then
-				if ! declare -f "check_option_type_$option_type"
-				then
-					printf "%s: %s: type has no validation function. This is a bug.\n" \
-						"$__argsparse_pgm" "$option_type"
-					exit 1
-					
-				fi
-			 	if ! "check_option_type_$option_type" "$value"
+			 	if ! argsparse_check_option_type "$option_type" "$value"
 				then
 					printf "%s: %s: invalid value for %s.\n" \
 						"$__argsparse_pgm" "$value" "$next_param"
