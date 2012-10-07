@@ -409,7 +409,7 @@ argsparse_check_option_type() {
 			;;
 		*)
 			# Invoke user-defined type-checking function if available.
-			if ! declare -f "check_option_type_$option_type"
+			if ! declare -f "check_option_type_$option_type" >/dev/null
 			then
 				printf "%s: %s: type has no validation function. This is a bug.\n" \
 					"$__argsparse_pgm" "$option_type"
@@ -546,7 +546,7 @@ __argsparse_parse_options_no_usage() {
 				if ! __argsparse_index_of "$value" \
 					"${!possible_values}" >/dev/null
 				then
-					printf "%s: %s: Invalid value for %s option.\n" \
+					printf "%s: %s: Invalid value for option %s.\n" \
 						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
@@ -554,7 +554,7 @@ __argsparse_parse_options_no_usage() {
 			then
 			 	if ! argsparse_check_option_type "$option_type" "$value"
 				then
-					printf "%s: %s: invalid value for %s.\n" \
+					printf "%s: %s: invalid value for option %s.\n" \
 						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
@@ -562,7 +562,7 @@ __argsparse_parse_options_no_usage() {
 			then
 				if ! "check_value_of_$next_param" "$value"
 				then
-					printf "%s: %s: Invalid value for %s option.\n" \
+					printf "%s: %s: Invalid value for option %s.\n" \
 						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
