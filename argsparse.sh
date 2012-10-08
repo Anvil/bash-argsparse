@@ -731,7 +731,7 @@ argsparse_is_option_set() {
 	# @return 0 if given option has been set on the command line.
 	[[ $# -ne 1 ]] && return 1
 	local option=$1
-	__argsparse_index_of "$option" "${!program_options[@]}" >/dev/null
+	[[ -n "${program_options[$option]+yes}" ]]
 }
 
 # We do define a default --help option.
