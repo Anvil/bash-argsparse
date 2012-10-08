@@ -344,7 +344,7 @@ __argsparse_check_missing_options() {
 	do
 		argsparse_has_option_property "$option" mandatory || continue
 		# If option has been given, just iterate.
-		__argsparse_index_of "$option" "$@" >/dev/null && continue
+		argsparse_is_option_set "$option" && continue
 		printf "%s: --%s: option is mandatory.\n" \
 			"$__argsparse_pgm" "$option"
 		: $((count++))
@@ -504,7 +504,7 @@ __argsparse_parse_options_no_usage() {
 			program_params=( "$@" )
 			# If some mandatory option have been omited by the user, then
 			# print some error, and invoke usage.
-			__argsparse_check_missing_options "${!program_options[@]}"
+			__argsparse_check_missing_options
 			return 
 		fi
 		# If a short option was given, then we first convert it to its
