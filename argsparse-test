@@ -47,6 +47,8 @@ check_option_type_mytype() {
 
 argsparse_use_option myoption "My typed custom option" type:mytype short:M value
 
+argsparse_usage_description="Here you can describe your program usage a bit more."
+
 argsparse_parse_options "$@"
 
 # Print all options with their values.
