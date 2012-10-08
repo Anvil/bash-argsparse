@@ -125,10 +125,6 @@
 # * You cannot have a short option without a long option.
 # * Non-alphanumeric, non-underscore chars in option names
 #   could and will lead to trouble and failure.
-# * No verification is made to prevent 2 long options to have the same
-#   short option. If that happens, result only depends of bash inner
-#   magic.
-#
 
 # We're not compatible with older bash versions.
 if [[ "$BASH_VERSINFO" -lt 4 ]]
@@ -148,7 +144,7 @@ ARGSPARSE_INTERNAL_VERSION=1.0
 #   ends with a colon char ':'.
 # * If the --something option can have a short single-lettered option
 #   equivalent like -s, then prefix the letter by an equal '=' char.
-typeset -A __argsparse_options_descriptions=()
+declare -A __argsparse_options_descriptions=()
 
 # The program name
 __argsparse_pgm="${0##*/}"
@@ -192,16 +188,17 @@ __argsparse_index_of() {
 }
 
 __argsparse_join_array() {
-       # Like the 'join' string method in python, join multiple
-       # strings by a char.
-       # @param a single char
-       # @param multiple string.
-       local IFS="$1$IFS"
-       shift
-       printf "%s" "$*"
+    # Like the 'join' string method in python, join multiple
+    # strings by a char.
+    # @param a single char
+    # @param multiple string.
+    local IFS="$1$IFS"
+    shift
+    printf "%s" "$*"
 }
 
 argsparse_option_to_identifier() {
+	[[ $# -ne 1 ]] && return 1
 	local option=$1
 	printf "%s" "${option//-/_}"
 }
@@ -333,6 +330,7 @@ usage() {
 # 
 
 __argsparse_option_has_declared_values() {
+	[[ $# -ne 1 ]] && return 1
 	local option=$1
 	local identifier="$(argsparse_option_to_identifier "$option")"
 	local possible_values="option_${identifier}_values"
@@ -351,7 +349,7 @@ __argsparse_check_missing_options() {
 			"$__argsparse_pgm" "$option"
 		: $((count++))
 	done
-	[[ $count -eq 0 ]]
+	[[ "$count" -eq 0 ]]
 }
 
 argsparse_check_option_type() {
@@ -359,6 +357,7 @@ argsparse_check_option_type() {
 	# @param a type. A type name is case insensitive.
 	# @param a value to check
 	# @returns 0 if the value matches the given type format.
+	[[ $# -ne 2 ]] && return 1
 	local option_type=${1,,}
 	local value=$2
 	local t
@@ -600,11 +599,11 @@ __argsparse_parse_options_no_usage() {
 # or 
 # 'longoption' -> how many times the option has been detected on the
 # 			      command line.
-typeset -A program_options=()
+declare -A program_options=()
 
 # program_params is a standard array which will contains all
 # non-option parameters. (Typically, everything found after the '--')
-typeset -a program_params=()
+declare -a program_params=()
 
 argsparse_reset() {
 	program_options=()
@@ -614,7 +613,7 @@ argsparse_reset() {
 
 # Option properties
 
-typeset -A __argsparse_option_properties=()
+declare -A __argsparse_option_properties=()
 
 argsparse_set_option_property() {
 	# Enable a property to a list of options.
@@ -649,12 +648,13 @@ argsparse_has_option_property() {
 }
 
 # Association short option -> long option.
-typeset -A __argsparse_short_options=()
+declare -A __argsparse_short_options=()
 
 _argsparse_optstring_has_short() {
 	# Prints the short option string suitable for getopt command line.
 	# Returns non-zero if given optstring doesnt have any short option
 	# equivalent.
+	[[ $# -ne 1 ]] && return 1
 	local optstring=$1
 	if [[ "$optstring" =~ .*=(.).* ]]
 	then
