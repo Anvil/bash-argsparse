@@ -608,6 +608,7 @@ declare -a program_params=()
 argsparse_reset() {
 	program_options=()
 	program_params=()
+	__argsparse_short_options=()
 }
 
 
