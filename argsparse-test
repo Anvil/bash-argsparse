@@ -47,6 +47,17 @@ check_option_type_mytype() {
 
 argsparse_use_option myoption "My typed custom option" type:mytype short:M value
 
+
+# A function where the set
+argsparse_use_option cumulative: "Add this option more than once" short:C
+
+cumulative=()
+set_option_cumulative() {
+	local option=$1
+	local value=$2
+	cumulative+=( "$value" )
+}
+
 argsparse_usage_description="Here you can describe your program usage a bit more."
 
 argsparse_parse_options "$@"
@@ -57,4 +68,12 @@ for i in "${!program_options[@]}"
 do
 	printf "% -15s: % 50s\n" "$i" "${program_options[$i]}"
 done
+
+if [[ ${#cumulative[@]} -ne 0 ]]
+then
+	printf -- "--cumulative option has been specified %d times. Values are:\n" \
+		${#cumulative[@]}
+	printf " * '%s'\n" "${cumulative[@]}"
+fi
+
 printf "Other script parameters are: %s\n" "${program_params[*]}"
