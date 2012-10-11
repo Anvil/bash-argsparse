@@ -130,7 +130,7 @@
 if [[ "$BASH_VERSINFO" -lt 4 ]]
 then
 	printf "This requires bash >= 4 to run.\n"
-	return 1 2>/dev/null 
+	return 1 2>/dev/null
 	exit 1
 fi
 
@@ -626,8 +626,29 @@ argsparse_set_option_property() {
 	local option p
 	for option in "$@"
 	do
-		p=${__argsparse_option_properties["$option"]}
-		__argsparse_option_properties["$option"]="${p:+$p,}$property"
+		case "$property" in
+			mandatory|hidden|value|type:*)
+				p=${__argsparse_option_properties["$option"]}
+				__argsparse_option_properties["$option"]="${p:+$p,}$property"
+				;;
+			short:?)
+				short=${property#short:}
+				if [[ -n "${__argsparse_short_options[$short]}" ]]
+				then
+					printf "%s: %s: short option for %s conflicts with already-configured short option for %s. Aborting.\n" \
+						"$__argsparse_pgm" "$short" "$option" \
+						"${__argsparse_short_options[$short]}"
+					exit 1
+				fi
+				__argsparse_short_options["$short"]=$option
+				;;
+			default:*)
+				# The default value
+				program_options["$long"]=${property#default:}
+				;;
+			*)
+				return 1
+		esac
 	done
 }
 
@@ -699,30 +720,20 @@ argsparse_use_option() {
 		long=$optstring
 	fi
 
+	if [[ "$long" = *[!-0-9a-zA-Z_]* ]]
+	then
+		printf "%s: %s: bad option name.\n" "$__argsparse_pgm" "$long"
+	fi
+
 	__argsparse_options_descriptions["$long"]="$description"
 
 	while [[ $# -ne 0 ]]
 	do
-		case "$1" in
-			mandatory|hidden|value|type:*)
-				argsparse_set_option_property "$1" "$long"
-				;;
-			short:?)
-				short=${1#short:}
-				if [[ -n "${__argsparse_short_options[$short]}" ]]
-				then
-					printf "%s: %s: short option for %s conflicts with already-configured short option for %s. Aborting.\n" \
-						"$__argsparse_pgm" "$short" "$long" \
-						"${__argsparse_short_options[$short]}"
-					exit 1
-				fi
-				__argsparse_short_options["$short"]=$long
-				;;
-			*)
-				# The default value
-				program_options["$long"]=$1
-				;;
-		esac
+		if ! argsparse_set_option_property "$1" "$long"
+		then
+			printf '%s: %s: unknown property.\n' "$__argsparse_pgm" "$1"
+			exit 1
+		fi
 		shift
 	done
 }
