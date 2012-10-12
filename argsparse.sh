@@ -477,7 +477,7 @@ __argsparse_parse_options_no_usage() {
 	# Be careful, the function is (too) big.
 
 	local long short getopt_temp next_param set_hook option_type
-	local possible_values next_param_identifier
+	local next_param_identifier
 	local -a longs_array
 	# The getopt parameters.
 	local longs shorts option
