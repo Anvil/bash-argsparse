@@ -184,11 +184,10 @@ argsparse_minimum_parameters() {
 # 2 generic functions
 __argsparse_index_of() {
     # Verifies if a key belongs to an array
-    # 1st Parameter: a key
-    # other parameters: arrays keys
-    # returns 0 if first parameters is amongst other parameters and
-    # prints the found index.
-    # Else doesnt print anything and returns 1
+    # @param: a key
+    # @params: array keys
+    # @return 0 if first parameter is amongst other parameters and
+    # prints the found index. Else prints nothing and returns 1.
     [ $# -lt 2 ] && return 1
     local key=$1 ; shift
     local index=0
@@ -248,6 +247,8 @@ argsparse_set_option_with_value() {
 
 argsparse_set_option() {
 	# This function is the default option-setting hook.
+	# @param an option name.
+	# @param an optional value.
 	[[ $# -ne 2 && $# -ne 1 ]] && return 1
 	local option=$1
 	[[ $# -eq 2 ]] && local value=$2
