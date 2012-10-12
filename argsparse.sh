@@ -18,7 +18,7 @@
 #            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
 #   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 #
-#  0. You just DO WHAT THE FUCK YOU WANT TO. 
+#  0. You just DO WHAT THE FUCK YOU WANT TO.
 #
 #########
 #
@@ -48,7 +48,7 @@
 #
 ##
 #
-# Options may have properties. 
+# Options may have properties.
 # The currently supported properties are:
 #
 # * "hidden"
@@ -62,8 +62,15 @@
 # * "value"
 #	Same effect if you end your optstring with a ":" char.
 #
-# * "short"
-#   To be described...
+# * "default:<defaultvalue>"
+#	The default value for the option.
+#
+# * "short:<char>"
+#   The short single-letter equivalent of the option.
+#
+# * "type:<typename>"
+#	Give a type to the option value. User input will be checked
+#	against the check_type_<typename> function
 #
 ##
 #
@@ -98,11 +105,13 @@
 #
 # During option parsing, for every long option of the form
 # '--longoption' expecting a value:
-# 
-# * If it exists an array named 'option_longoption_values' and the
+#
+# * If it exists an array named 'option_<longoption>_values' and the
 #   user-given value doesn't belong to that array, then the
 #   argsparse_parse_options function immediately returns with non-zero
 #   status, triggering 'usage'.
+#
+# *
 #
 # * If it doesn't exist an array named 'option_longoption_values' and
 #   if a function named 'check_value_of_longtoption' exist, this
@@ -129,7 +138,7 @@
 # We're not compatible with older bash versions.
 if [[ "$BASH_VERSINFO" -lt 4 ]]
 then
-	printf "This requires bash >= 4 to run.\n"
+	printf >&2 "This requires bash >= 4 to run.\n"
 	return 1 2>/dev/null
 	exit 1
 fi
@@ -220,7 +229,7 @@ argsparse_set_option_without_value() {
 }
 
 argsparse_set_option_with_value() {
-	# The default action to take for option with values. 
+	# The default action to take for option with values.
 	# @param a long option name
 	# @param the value put on command line for given option.
 	[ $# -ne 2 ] && return 1
@@ -256,7 +265,7 @@ _usage_short() {
 	printf "%s " "$__argsparse_pgm"
 	for long in "${!__argsparse_options_descriptions[@]}"
 	do
-		if argsparse_has_option_property "$long" hidden 
+		if argsparse_has_option_property "$long" hidden
 		then
 			continue
 		fi
@@ -287,7 +296,7 @@ _usage_long() {
 	done
 	for long in "${!__argsparse_options_descriptions[@]}"
 	do
-		if argsparse_has_option_property "$long" hidden 
+		if argsparse_has_option_property "$long" hidden
 		then
 			continue
 		fi
@@ -327,7 +336,7 @@ usage() {
 }
 
 
-# 
+#
 
 __argsparse_option_has_declared_values() {
 	[[ $# -ne 1 ]] && return 1
@@ -345,7 +354,7 @@ __argsparse_check_missing_options() {
 		argsparse_has_option_property "$option" mandatory || continue
 		# If option has been given, just iterate.
 		argsparse_is_option_set "$option" && continue
-		printf "%s: --%s: option is mandatory.\n" \
+		printf >&2 "%s: --%s: option is mandatory.\n" \
 			"$__argsparse_pgm" "$option"
 		: $((count++))
 	done
@@ -410,7 +419,7 @@ argsparse_check_option_type() {
 			# Invoke user-defined type-checking function if available.
 			if ! declare -f "check_option_type_$option_type" >/dev/null
 			then
-				printf "%s: %s: type has no validation function. This is a bug.\n" \
+				printf >&2 "%s: %s: type has no validation function. This is a bug.\n" \
 					"$__argsparse_pgm" "$option_type"
 				exit 1
 			fi
@@ -494,10 +503,10 @@ __argsparse_parse_options_no_usage() {
 			# what we expects.
 			if [[ $# -lt "$__argsparse_minimum_parameters" ]]
 			then
-				printf \
+				printf >&2 \
 					"%s: not enough parameters (at least %d expected, %d provided)\n" \
 					"$__argsparse_pgm" "$__argsparse_minimum_parameters" $#
-					
+
 				return 1
 			fi
 			# Save program parameters in array
@@ -505,7 +514,7 @@ __argsparse_parse_options_no_usage() {
 			# If some mandatory option have been omited by the user, then
 			# print some error, and invoke usage.
 			__argsparse_check_missing_options
-			return 
+			return
 		fi
 		# If a short option was given, then we first convert it to its
 		# matching long name.
@@ -517,8 +526,8 @@ __argsparse_parse_options_no_usage() {
 				# Short option without equivalent long. According to
 				# current implementation, this should be considered as
 				# a bug.
-				printf "%s: -%s: option doesnt have any matching long option." \
-					"$__argsparse_pgm" "$next_param" >&2
+				printf >&2 "%s: -%s: option doesnt have any matching long option." \
+					"$__argsparse_pgm" "$next_param"
 				return 1
 			fi
 			next_param="${__argsparse_short_options[$next_param]}"
@@ -545,7 +554,7 @@ __argsparse_parse_options_no_usage() {
 				if ! __argsparse_index_of "$value" \
 					"${!possible_values}" >/dev/null
 				then
-					printf "%s: %s: Invalid value for option %s.\n" \
+					printf >&2 "%s: %s: Invalid value for option %s.\n" \
 						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
@@ -553,7 +562,7 @@ __argsparse_parse_options_no_usage() {
 			then
 			 	if ! argsparse_check_option_type "$option_type" "$value"
 				then
-					printf "%s: %s: invalid value for option %s.\n" \
+					printf >&2 "%s: %s: invalid value for option %s.\n" \
 						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
@@ -561,7 +570,7 @@ __argsparse_parse_options_no_usage() {
 			then
 				if ! "check_value_of_$next_param" "$value"
 				then
-					printf "%s: %s: Invalid value for option %s.\n" \
+					printf >&2 "%s: %s: Invalid value for option %s.\n" \
 						"$__argsparse_pgm" "$value" "$next_param"
 					return 1
 				fi
@@ -586,7 +595,7 @@ __argsparse_parse_options_no_usage() {
 		# empty value from a no-value.
 		if ! "$set_hook" "$next_param" ${value+"$value"}
 		then
-			printf "%s: %s: Invalid value for %s option.\n" \
+			printf >&2 "%s: %s: Invalid value for %s option.\n" \
 				"$__argsparse_pgm" "$value" "$next_param"
 			return 1
 		fi
@@ -596,7 +605,7 @@ __argsparse_parse_options_no_usage() {
 
 # program_options is an associative array containing (if no hook is set)
 # 'longoption' -> value, if longoption accepts a value
-# or 
+# or
 # 'longoption' -> how many times the option has been detected on the
 # 			      command line.
 declare -A program_options=()
@@ -620,6 +629,7 @@ argsparse_set_option_property() {
 	# Enable a property to a list of options.
 	# @param a property name.
 	# @params option names.
+	# @return non-zero if property is not supported.
 	[[ $# -lt 2 ]] && return 1
 	local property=$1
 	shift
@@ -648,6 +658,7 @@ argsparse_set_option_property() {
 				;;
 			*)
 				return 1
+				;;
 		esac
 	done
 }
@@ -722,7 +733,7 @@ argsparse_use_option() {
 
 	if [[ "$long" = *[!-0-9a-zA-Z_]* ]]
 	then
-		printf "%s: %s: bad option name.\n" "$__argsparse_pgm" "$long"
+		printf >&2 "%s: %s: bad option name.\n" "$__argsparse_pgm" "$long"
 	fi
 
 	__argsparse_options_descriptions["$long"]="$description"
@@ -731,7 +742,7 @@ argsparse_use_option() {
 	do
 		if ! argsparse_set_option_property "$1" "$long"
 		then
-			printf '%s: %s: unknown property.\n' "$__argsparse_pgm" "$1"
+			printf >&2 '%s: %s: unknown property.\n' "$__argsparse_pgm" "$1"
 			exit 1
 		fi
 		shift
