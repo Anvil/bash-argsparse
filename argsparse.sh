@@ -273,9 +273,10 @@ _usage_short() {
 		printf -- "--%s " "$long"
 		if argsparse_has_option_property "$long" value
 		then
-			if __argsparse_option_has_declared_values "$long"
+			values="option_${long}_values"
+			if __argsparse_is_array_declared "$values"
 			then
-				values="option_${long}_values[@]"
+				values="$values[@]"
 				printf "<%s> " "$(__argsparse_join_array "|" "${!values}")"
 			else
 				printf "arg "
@@ -338,13 +339,11 @@ usage() {
 
 #
 
-__argsparse_option_has_declared_values() {
+__argsparse_is_array_declared() {
 	[[ $# -ne 1 ]] && return 1
-	local option=$1
-	local identifier="$(argsparse_option_to_identifier "$option")"
-	local possible_values="option_${identifier}_values"
-	[[ "$(declare -p "$possible_values" 2>/dev/null)" = \
-		"declare -"[aZ]" $possible_values='("* ]]
+	local array_name=$1
+	[[ "$(declare -p "$array_name" 2>/dev/null)" = \
+		"declare -"[aA]" $array_name='("* ]]
 }
 
 __argsparse_check_missing_options() {
@@ -426,6 +425,36 @@ argsparse_check_option_type() {
 			"check_option_type_$option_type" "$value"
 			;;
 	esac
+}
+
+__argsparse_parse_options_valuecheck() {
+	# Check a value.
+	# If an enumeration has been defined for the option, check against
+	# that. If there's no enumeration, but option has a type property,
+	# then check against the type.
+	# In the end, check against check_value_of_<option> function, if
+	# it's been defined.
+	# @param an option name
+	# @param a value
+	# @return 0 if value is correct for given option.
+	local option=$1
+	local value=$2
+	local identifier possible_values option_type
+	identifier="$(argsparse_option_to_identifier "$option")"
+	possible_values="option_${identifier}_values"
+	if __argsparse_is_array_declared "$possible_values"
+	then
+		possible_values="$possible_values[@]"
+		__argsparse_index_of "$value" "${!possible_values}" >/dev/null || return 1
+	elif option_type=$(argsparse_has_option_property "$option" type)
+	then
+		argsparse_check_option_type "$option_type" "$value" || return 1
+	fi
+	if declare -f "check_value_of_$identifier" >/dev/null 2>&1
+	then
+		"check_value_of_$identifier" "$value" || return 1
+	fi
+	return 0
 }
 
 argsparse_parse_options() {
@@ -543,37 +572,11 @@ __argsparse_parse_options_no_usage() {
 		then
 			value=$1
 			shift
-			# Check the value correctness, in case the user has
-			# defined a checking hook or a list of acceptable values.
-			# (not in that order, though)
-			# This may be succeptible to evolution/change.
-			possible_values="option_${next_param_identifier}_values"
-			if __argsparse_option_has_declared_values "$next_param"
+			if ! __argsparse_parse_options_valuecheck "$next_param" "$value"
 			then
-				possible_values="$possible_values[@]"
-				if ! __argsparse_index_of "$value" \
-					"${!possible_values}" >/dev/null
-				then
-					printf >&2 "%s: %s: Invalid value for option %s.\n" \
-						"$__argsparse_pgm" "$value" "$next_param"
-					return 1
-				fi
-			elif option_type=$(argsparse_has_option_property "$next_param" type)
-			then
-			 	if ! argsparse_check_option_type "$option_type" "$value"
-				then
-					printf >&2 "%s: %s: invalid value for option %s.\n" \
-						"$__argsparse_pgm" "$value" "$next_param"
-					return 1
-				fi
-			elif declare -f "check_value_of_$next_param" >/dev/null 2>&1
-			then
-				if ! "check_value_of_$next_param" "$value"
-				then
-					printf >&2 "%s: %s: Invalid value for option %s.\n" \
-						"$__argsparse_pgm" "$value" "$next_param"
-					return 1
-				fi
+				printf >&2 "%s: %s: Invalid value for option %s.\n" \
+					"$__argsparse_pgm" "$value" "$next_param"
+				return 1
 			fi
 		else
 			unset value
