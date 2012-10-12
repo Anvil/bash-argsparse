@@ -46,6 +46,9 @@
 # line. The '=' char is also optional and means the following letter
 # is the short single-letter equivalent option of --something.
 #
+# The 'something' string must only contains ASCII
+# letters/numbers/dash/underscore characters.
+#
 ##
 #
 # Options may have properties.
@@ -93,6 +96,12 @@
 #       value of the last occurence of the option found on the command
 #       line.
 #
+# After argsparse_parse_options invokation, you can check if an option
+# have was on the command line (or not) using the
+# argsparse_is_option_set function.
+#
+# argsparse_is_option_set "long-option-name"
+#
 ##
 #
 # If a 'usage' function is defined, and shall parse_option return with
@@ -111,11 +120,12 @@
 #   argsparse_parse_options function immediately returns with non-zero
 #   status, triggering 'usage'.
 #
-# *
+# * If the 'option_<longoption>_values' array does not exist, but if
+#   the option has a type property field, then the value format will
+#   be checked agaisnt that type.
 #
-# * If it doesn't exist an array named 'option_longoption_values' and
-#   if a function named 'check_value_of_longtoption' exist, this
-#   function is called with the user-given value as its first
+# * If a function named 'check_value_of_longtoption' has been defined,
+#   it will be called with the user-given value as its first
 #   positionnal parameter. If check_value_of_longtoption returns with
 #   non-zero status, then parse_option immediately returns with
 #   non-zero status, triggering 'usage'.
@@ -132,8 +142,6 @@
 #
 # Known limitations and bugs:
 # * You cannot have a short option without a long option.
-# * Non-alphanumeric, non-underscore chars in option names
-#   could and will lead to trouble and failure.
 
 # We're not compatible with older bash versions.
 if [[ "$BASH_VERSINFO" -lt 4 ]]
