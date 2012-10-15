@@ -478,6 +478,40 @@ argsparse_parse_options() {
 	return 1
 }
 
+
+__argsparse_parse_options_prepare_exclude() {
+    # Check for all "exclude" properties, and fill "exclusions"
+    # associative array, which should have been declared in
+    # __argsparse_parse_options_no_usage.
+    local option exclude
+    for option in "${!__argsparse_option_description[@]}"
+    do
+	exclude=$(argsparse_has_option_property "$option" exclude) || \
+	    continue
+	exclusions["$option"]+="${exclude["$option"]:+ }$exclude"
+	exclusions["$exclude"]+="${exclude["$exclude"]:+ }$option"
+    done
+}
+
+__argsparse_parse_options_check_exclusions() {
+    # Check if two options presents on the command line are mutually
+    # exclusive. Prints the "other" option if it's the case.
+    # @param an option
+    # @return 0 if the given option has actually excluded by annother
+    # already-given option.
+    local new_option=$1
+    local option
+    for option in "${!program_options[@]}"
+    do
+	if [[ "${exclusions["$option"]}" =~ ^(.* )?"$new_option"( .*)$ ]]
+	then
+	    printf %s "$option"
+	    return 0
+	fi
+    done
+    return 1
+}
+
 __argsparse_parse_options_no_usage() {
 	# This function re-set program_params array values. This function
 	# will also modify the program_options associative array.
@@ -486,8 +520,9 @@ __argsparse_parse_options_no_usage() {
 	# Be careful, the function is (too) big.
 
 	local long short getopt_temp next_param set_hook option_type
-	local next_param_identifier
+	local next_param_identifier exclude
 	local -a longs_array
+	local -A exclusions
 	# The getopt parameters.
 	local longs shorts option
 
@@ -529,7 +564,10 @@ __argsparse_parse_options_no_usage() {
 	fi
 	eval set -- "$getopt_temp"
 
-	# 5. Arguments parsing is really made here.
+	# 5. Prepare exclusions stuff.
+	__argsparse_parse_options_prepare_exclude
+	
+	# 6. Arguments parsing is really made here.
 	while :
 	do
 		next_param=$1
@@ -572,6 +610,12 @@ __argsparse_parse_options_no_usage() {
 		else
 			# Wasnt a short option. Just strip the leading dash.
 			next_param="${next_param#--}"
+		fi
+		if exclude=$(__argsparse_parse_options_check_exclusions "$next_param")
+		then
+		    printf "%s: %s: option excluded by other option (%s).\n" \
+			"$__argsparse_pgm" "$next_param" "$exclude"
+		    return 1
 		fi
 		# The "identifier string" matching next_param, suitable for
 		# variable or function names.
@@ -649,7 +693,7 @@ argsparse_set_option_property() {
 	for option in "$@"
 	do
 		case "$property" in
-			mandatory|hidden|value|type:*)
+			mandatory|hidden|value|type:*|exclude:*)
 				p=${__argsparse_option_properties["$option"]}
 				__argsparse_option_properties["$option"]="${p:+$p,}$property"
 				;;
