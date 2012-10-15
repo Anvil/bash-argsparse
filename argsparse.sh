@@ -484,12 +484,12 @@ __argsparse_parse_options_prepare_exclude() {
     # associative array, which should have been declared in
     # __argsparse_parse_options_no_usage.
     local option exclude
-    for option in "${!__argsparse_option_description[@]}"
+    for option in "${!__argsparse_options_descriptions[@]}"
     do
 	exclude=$(argsparse_has_option_property "$option" exclude) || \
 	    continue
-	exclusions["$option"]+="${exclude["$option"]:+ }$exclude"
-	exclusions["$exclude"]+="${exclude["$exclude"]:+ }$option"
+	exclusions["$option"]+="${exclusions["$option"]:+ }$exclude"
+	exclusions["$exclude"]+="${exclusions["$exclude"]:+ }$option"
     done
 }
 
