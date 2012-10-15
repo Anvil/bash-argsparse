@@ -196,7 +196,7 @@ __argsparse_index_of() {
     for elem in "$@"
     do
       [ "$key" != "$elem" ] && : $((index++)) && continue
-      echo $index
+      printf %s "$index"
       return 0
     done
 
@@ -501,9 +501,10 @@ __argsparse_parse_options_check_exclusions() {
     # already-given option.
     local new_option=$1
     local option
+    
     for option in "${!program_options[@]}"
     do
-	if [[ "${exclusions["$option"]}" =~ ^(.* )?"$new_option"( .*)$ ]]
+	if [[ "${exclusions["$option"]}" =~ ^(.* )?"$new_option"( .*)?$ ]]
 	then
 	    printf %s "$option"
 	    return 0
