@@ -32,7 +32,9 @@ argsparse_use_option unsignedint "An unsigned integer" type:uint
 # type:integer is the same as type:int
 argsparse_use_option int: "Just some random possibly negative integer" type:int
 argsparse_use_option hexa: "Some hexadecimal value" type:hexa
-argsparse_use_option IP: "An IP (either v4 *or* v6) address" type:ip
+# IP excludes IP4 and IP6 (and vice-versa)
+argsparse_use_option IP: "An IP (either v4 *or* v6) address" type:ip exclude:"IP4 IP6"
+# IP4 excludes IP6
 argsparse_use_option IP4: "An IPv4 address" type:ipv4 exclude:IP6
 argsparse_use_option IP6: "An IPv6 address" type:ipv6
 argsparse_use_option host: "Some host" type:host
