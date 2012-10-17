@@ -75,6 +75,17 @@
 #	Give a type to the option value. User input will be checked
 #	against the check_type_<typename> function
 #
+# * "exclude:<optionname> <optionname>"
+#   The exclude property value is a space-separated list of other
+#   options names. User wont be able to provided to mutually exclusive
+#   option on the command line. 
+#   e.g: if you set exclude property for the --foo option this way:
+#   argsparse_set_option_property "exclude:opt1 opt2" foo
+#   Then --opt1 and --foo are not allowed on the same command line
+#   invokation. And same goes for --opt2 and --foo.
+#   This foo exclude property setting wouldnt make --opt1 and --opt2,
+#   mutually exclusive though.
+# 
 ##
 #
 # After the options are declared, invoke the function
