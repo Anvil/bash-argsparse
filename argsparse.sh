@@ -737,7 +737,7 @@ argsparse_set_option_property() {
 				;;
 			default:*)
 				# The default value
-				program_options["$long"]=${property#default:}
+				program_options["$option"]=${property#default:}
 				;;
 			*)
 				return 1
