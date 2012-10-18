@@ -494,13 +494,17 @@ __argsparse_parse_options_prepare_exclude() {
     # Check for all "exclude" properties, and fill "exclusions"
     # associative array, which should have been declared in
     # __argsparse_parse_options_no_usage.
-    local option exclude
+    local option excludes exclude
     for option in "${!__argsparse_options_descriptions[@]}"
     do
-	exclude=$(argsparse_has_option_property "$option" exclude) || \
-	    continue
-	exclusions["$option"]+="${exclusions["$option"]:+ }$exclude"
-	exclusions["$exclude"]+="${exclusions["$exclude"]:+ }$option"
+		excludes=$(argsparse_has_option_property "$option" exclude) || \
+			continue
+		exclusions["$option"]+="${exclusions["$option"]:+ }$excludes"
+		# $excludes is left unquoted on purpose.
+		for exclude in $excludes
+		do
+			exclusions["$exclude"]+="${exclusions["$exclude"]:+ }$option"
+		done
     done
 }
 
@@ -706,6 +710,17 @@ argsparse_set_option_property() {
 	do
 		case "$property" in
 			mandatory|hidden|value|type:*|exclude:*)
+				if [[ "$property" =~ ^.*:(.+)$ ]]
+				then
+					# If property has a value, check its format, we
+					# dont want any funny chars.
+					if [[ "${BASH_REMATCH[1]}" = *[*?!,]* ]]
+					then
+						printf "%s: %s: invalid property value.\n" \
+							"$__argsparse_pgm" "${BASH_REMATCH[1]}"
+						return 1
+					fi
+				fi
 				p=${__argsparse_option_properties["$option"]}
 				__argsparse_option_properties["$option"]="${p:+$p,}$property"
 				;;
