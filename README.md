@@ -24,6 +24,6 @@ Try using the argsparse-test script.
 
 * Invoking it without any parameter will trigger the usage function :
 
-  $ argsparse-test
+	$ ./argsparse-test
 
 * Try adding some options. Check argsparse-test source code for hints.
