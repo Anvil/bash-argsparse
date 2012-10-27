@@ -1,0 +1,148 @@
+#!/bin/bash
+#
+#
+#
+
+PATH="$PATH:."
+
+. argsparse.sh
+
+print_exit_status() {
+    # Prints [OK] at the end of the screen of first argument is 0,
+    # else [FAILURE].
+    # 1st Parameter: a number, usually the exit status of your
+    # previous command. If omitted, will use $?.
+    # returns the first parameter value
+    local ret="${1:-$?}"
+    # If you want you can override the FAILED and OK messages by
+    # pre-defining those variables.
+    local FAILED=${FAILED:-FAILED}
+    local OK=${OK:-OK}
+    # Move to column default is 70
+    local COL=${COL:=70}
+    [[ -t 1 ]] && echo -en "\033[${COL}G"
+    # Colors
+    if [[ -t 1 ]]
+    then
+        local COLOR_SUCCESS=${COLOR_SUCCESS:-'\033[1;32m'}
+        local COLOR_FAILURE=${COLOR_FAILURE:-'\033[1;31m'}
+        local COLOR_WARNING='\033[1;33m' COLOR_NORMAL='\033[0;39m'
+    else
+        local COLOR_SUCCESS= COLOR_FAILURE= COLOR_WARNING= COLOR_NORMAL=
+    fi
+    [[ "$ret" -eq 0 ]] && echo -e "[$COLOR_SUCCESS$OK$COLOR_NORMAL]" || \
+		echo -e "[$COLOR_FAILURE$FAILED$COLOR_NORMAL]"
+    return $ret
+}
+
+echo_for_print_status() {
+    local m="$1"
+    if tty >/dev/null 2>&1 && [[ -n "$PRINT_STATUS_COLOR" ]]
+    then
+        m="$(tput setaf $PRINT_STATUS_COLOR)$m$(tput sgr0)"
+    fi
+    printf "%s: " "$m"
+}
+
+exec_and_print_status() {
+    # prints a message, execute a command and print its exit status
+    # using print_exit_status function.
+    # 1st Parameter: a message
+    # all other parameter: the command to execute
+    # returns the exit status code of the command
+    [[ $# -lt 2 ]] && return 1
+    local m="$1" ; shift
+    PRINT_STATUS_COLOR="$PRINT_STATUS_COLOR" echo_for_print_status "$m"
+    "$@"
+    print_exit_status $?
+}
+
+(
+	argsparse_usage_description="Usage has been triggered"
+	echo_for_print_status "Checking no parameter triggers usage"
+	( 
+		argsparse_parse_options
+	) | grep -q "$argsparse_usage_description"
+	[ ${PIPESTATUS[0]} -ne 0 -a ${PIPESTATUS[1]} -eq 0 ]
+	print_exit_status 
+)
+
+(
+	argsparse_usage_description="Usage has been triggered"
+	echo_for_print_status "Checking dummy option triggers usage"
+	( 
+		argsparse_parse_options --dumb 2>/dev/null
+	) | grep -q "$argsparse_usage_description"
+	[ ${PIPESTATUS[0]} -ne 0 -a ${PIPESTATUS[1]} -eq 0 ]
+	print_exit_status 
+)
+
+(
+	argsparse_use_option first-option "first option description"
+	echo_for_print_status "Checking if option description appear in usage"
+	(
+		argsparse_parse_options -h
+	) | grep -q "first option description"
+	print_exit_status
+)
+
+default_test() {
+	[[ $? -eq 0 ]]
+}
+
+failure() {
+	[[ $? -ne 0 ]]
+}
+
+parse_option_wrapper() {
+	local message=$1
+	local TEST=${TEST:-default_test}
+	shift
+	echo_for_print_status "Checking $message"
+	(
+		argsparse_parse_options "$@"
+		$INNERTEST
+	) >/dev/null 2>&1
+	$TEST
+	print_exit_status
+}
+
+(
+	argsparse_use_option shortcut ""
+	parse_option_wrapper "option detection" --shortcut
+
+	argsparse_set_option_property short:S shortcut
+	parse_option_wrapper "short property" -S
+)
+
+(
+	argsparse_use_option =shortcut ""
+	parse_option_wrapper "= in optstring" -s
+)
+
+unittest_check_1() { [[ ${program_options[value]} = 1 ]] ; }
+
+(
+	argsparse_use_option value ""
+	argsparse_set_option_property value value
+	TEST=failure parse_option_wrapper "if value property expects value" --value
+	INNERTEST=unittest_check_1 parse_option_wrapper "if value is correctly detected" --value 1
+)
+
+(
+	argsparse_use_option value: ""
+	INNERTEST=unittest_check_1 parse_option_wrapper "if value is correctly detected with optstring" --value 1
+	TEST=failure parse_option_wrapper "if value property expects value if set with optstring" --value
+)	
+
+(
+	argsparse_use_option option1 ""
+	argsparse_use_option option2 "" mandatory
+	TEST=failure parse_option_wrapper "if missing mandatory option triggers error" --option1
+	parse_option_wrapper "if mandatory option makes return code 0" --option1 --option2
+	argsparse_use_option option3 "" mandatory
+	TEST=failure parse_option_wrapper "if missing mandatory options triggers error" --option1
+	TEST=failure parse_option_wrapper "if missing mandatory options triggers error" --option1 --option2
+	TEST=failure parse_option_wrapper "if missing mandatory options triggers error" --option1 --option3
+	TEST=failure parse_option_wrapper "if missing mandatory options triggers error" --option3 --option2
+)
