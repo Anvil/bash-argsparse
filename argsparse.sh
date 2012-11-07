@@ -494,14 +494,16 @@ __argsparse_parse_options_prepare_exclude() {
     # Check for all "exclude" properties, and fill "exclusions"
     # associative array, which should have been declared in
     # __argsparse_parse_options_no_usage.
-    local option excludes exclude
+    local option exclude excludestring
+	local -a excludes
     for option in "${!__argsparse_options_descriptions[@]}"
     do
-		excludes=$(argsparse_has_option_property "$option" exclude) || \
+		excludestring=$(argsparse_has_option_property "$option" exclude) || \
 			continue
-		exclusions["$option"]+="${exclusions["$option"]:+ }$excludes"
-		# $excludes is left unquoted on purpose.
-		for exclude in $excludes
+		exclusions["$option"]+="${exclusions["$option"]:+ }$excludestring"
+		# Re-split the string. (without involving anything else)
+		read -a excludes <<<"$excludestring"
+		for exclude in "${excludes[@]}"
 		do
 			exclusions["$exclude"]+="${exclusions["$exclude"]:+ }$option"
 		done
