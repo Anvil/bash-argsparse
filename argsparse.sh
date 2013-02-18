@@ -875,7 +875,7 @@ __max_length() {
 
 argsparse_report() {
 	local option
-	local length=$(_max_length "${!__argsparse_options_descriptions[@]}")
+	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
 	for option in "${!__argsparse_options_descriptions[@]}"
 	do
 		argsparse_has_option_property "$option" hidden && continue
