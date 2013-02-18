@@ -58,6 +58,7 @@ set_option_cumulative() {
 	local option=$1
 	local value=$2
 	cumulative+=( "$value" )
+	argsparse_set_option_with_value "$option" 1
 }
 
 argsparse_usage_description="Here you can describe your program usage a bit more."
@@ -79,3 +80,6 @@ then
 fi
 
 printf "Other script parameters are: %s\n" "${program_params[*]}"
+
+printf "Here is argsparse_report output:\n"
+argsparse_report
