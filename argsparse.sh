@@ -86,6 +86,15 @@
 #   This foo exclude property setting wouldnt make --opt1 and --opt2,
 #   mutually exclusive though.
 # 
+# * "alias:<optionname> <optionname>"
+#   This property allows an option to set multiple other without-value
+#   options instead. Recursive aliases can be done but no loop
+#   detection is made, so be careful.
+#   e.g: if you declare an option 'opt' like this:
+#   argsparse_use_option opt "my description" "alias:opt1 opt2"
+#   Then if the user is doing --opt on the command line will be as if
+#   he would have done --opt1 --opt2
+#
 ##
 #
 # After the options are declared, invoke the function
@@ -203,7 +212,6 @@ __argsparse_index_of() {
     local key=$1 ; shift
     local index=0
     local elem
-
     for elem in "$@"
     do
       [[ "$key" != "$elem" ]] && : $((index++)) && continue
@@ -265,7 +273,7 @@ argsparse_set_alias() {
 	then
 		return 1
 	fi
-	while [[ "$aliases" =~ ^/*([^/]+)(/(.+))?/*$ ]]
+	while [[ "$aliases" =~ ^\ *([^\ ]+)(\ (.+))?\ *$ ]]
 	do
 		# At this point, BASH_REMATCH[1] is the first alias, and
 		# BASH_REMATCH[3] is the maybe-empty list of other aliases.
@@ -380,7 +388,7 @@ _usage_long() {
 		fi
 		if aliases=$(argsparse_has_option_property "$long" alias)
 		then
-			IFS=/ read -a values <<<"$aliases"
+			read -a values <<<"$aliases"
 			values=( "${values[@]/#/--}" )
 			printf "${bol}Same as: %s\n" "${values[*]}"
 		fi
