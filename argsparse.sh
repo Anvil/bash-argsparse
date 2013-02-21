@@ -336,7 +336,7 @@ _usage_short() {
 }
 
 _usage_long() {
-	local long short sep format array q=\' bol='\t\t  '
+	local long short sep format array aliases q=\' bol='\t\t  '
 	local -A long_to_short=()
 	local -a values
 	for short in "${!__argsparse_short_options[@]}"
@@ -377,6 +377,12 @@ _usage_long() {
 			values=( "${values[@]/#/$q}" )
 			printf "${bol}Acceptable values: %s\n" \
 				"$(__argsparse_join_array " " "${values[@]}")"
+		fi
+		if aliases=$(argsparse_has_option_property "$long" alias)
+		then
+			IFS=/ read -a values <<<"$aliases"
+			values=( "${values[@]/#/--}" )
+			printf "${bol}Same as: %s\n" "${values[*]}"
 		fi
 	done
 }
