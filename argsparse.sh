@@ -92,8 +92,8 @@
 #   detection is made, so be careful.
 #   e.g: if you declare an option 'opt' like this:
 #   argsparse_use_option opt "my description" "alias:opt1 opt2"
-#   Then if the user is doing --opt on the command line will be as if
-#   he would have done --opt1 --opt2
+#   Then if the user is doing --opt on the command line, it will be as
+#   if he would have done --opt1 --opt2
 #
 ##
 #
