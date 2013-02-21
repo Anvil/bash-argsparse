@@ -269,8 +269,10 @@ argsparse_set_alias() {
 	do
 		# At this point, BASH_REMATCH[1] is the first alias, and
 		# BASH_REMATCH[3] is the maybe-empty list of other aliases.
-		__argsparse_set_option "${BASH_REMATCH[1]}"
+		# __argsparse_set_option will alter BASH_REMATCH, so modify
+		# aliases first.
 		aliases=${BASH_REMATCH[3]}
+		__argsparse_set_option "${BASH_REMATCH[1]}"
 	done
 }
 
