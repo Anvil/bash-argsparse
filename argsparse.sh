@@ -199,14 +199,14 @@ __argsparse_index_of() {
     # @params: array keys
     # @return 0 if first parameter is amongst other parameters and
     # prints the found index. Else prints nothing and returns 1.
-    [ $# -lt 2 ] && return 1
+    [[ $# -lt 2 ]] && return 1
     local key=$1 ; shift
     local index=0
     local elem
 
     for elem in "$@"
     do
-      [ "$key" != "$elem" ] && : $((index++)) && continue
+      [[ "$key" != "$elem" ]] && : $((index++)) && continue
       printf %s "$index"
       return 0
     done
@@ -241,7 +241,7 @@ argsparse_option_to_identifier() {
 argsparse_set_option_without_value() {
 	# The default action to take for options without values.
 	# @param a long option name
-	[ $# -ne 1 ] && return 1
+	[[ $# -ne 1 ]] && return 1
 	local option=$1
 	: $((program_options["$option"]++))
 }
@@ -250,10 +250,28 @@ argsparse_set_option_with_value() {
 	# The default action to take for option with values.
 	# @param a long option name
 	# @param the value put on command line for given option.
-	[ $# -ne 2 ] && return 1
+	[[ $# -ne 2 ]] && return 1
 	local option=$1
 	local value=$2
 	program_options["$option"]=$value
+}
+
+argsparse_set_alias() {
+	# This option will set all options aliased by another.
+	[[ $# -ne 1 ]] && return 
+	local option=$1
+	local aliases
+	if ! aliases="$(argsparse_has_option_property "$option" alias)"
+	then
+		return 1
+	fi
+	while [[ "$aliases" =~ ^/*([^/]+)(/(.+))?/*$ ]]
+	do
+		# At this point, BASH_REMATCH[1] is the first alias, and
+		# BASH_REMATCH[3] is the maybe-empty list of other aliases.
+		__argsparse_set_option "${BASH_REMATCH[1]}"
+		aliases=${BASH_REMATCH[3]}
+	done
 }
 
 argsparse_set_option() {
@@ -264,11 +282,14 @@ argsparse_set_option() {
 	local option=$1
 	[[ $# -eq 2 ]] && local value=$2
 
-	if argsparse_has_option_property "$option" value
+	if ! argsparse_set_alias "$option"
 	then
-		argsparse_set_option_with_value "$option" "$value"
-	else
-		argsparse_set_option_without_value "$option"
+		if argsparse_has_option_property "$option" value
+		then
+			argsparse_set_option_with_value "$option" "$value"
+		else
+			argsparse_set_option_without_value "$option"
+		fi
 	fi
 }
 
@@ -547,6 +568,31 @@ __argsparse_parse_options_check_exclusions() {
     return 1
 }
 
+__argsparse_set_option() {
+	[[ $# -ne 1 && $# -ne 2 ]] && return 1 
+	local option=$1
+	local set_hook identifier
+	[[ $# -eq 2 ]] && local value=$2
+	# The "identifier string" matching next_param, suitable for
+	# variable or function names.
+	identifier="$(argsparse_option_to_identifier "$option")"
+	# If user has defined a specific setting hook for given the
+	# option, then use it, else use default standard
+	# option-setting function.
+	if declare -f "set_option_$identifier" >/dev/null 2>&1
+	then
+		set_hook="set_option_$identifier"
+	else
+		set_hook=argsparse_set_option
+	fi
+	# Invoke setting hook, and if it returns returns some non-zero
+	# status, send the user back to usage, if declared, and return
+	# with error.
+	# The specific $value substitution, here, is to distinguish an
+	# empty value from a no-value.
+	"$set_hook" "$option" ${value+"$value"}
+}
+
 __argsparse_parse_options_no_usage() {
 	# This function re-set program_params array values. This function
 	# will also modify the program_options associative array.
@@ -637,7 +683,8 @@ __argsparse_parse_options_no_usage() {
 				# Short option without equivalent long. According to
 				# current implementation, this should be considered as
 				# a bug.
-				printf >&2 "%s: -%s: option doesnt have any matching long option." \
+				printf >&2 \
+					"%s: -%s: option doesnt have any matching long option." \
 					"$__argsparse_pgm" "$next_param"
 				return 1
 			fi
@@ -652,9 +699,6 @@ __argsparse_parse_options_no_usage() {
 			"$__argsparse_pgm" "$next_param" "$exclude"
 		    return 1
 		fi
-		# The "identifier string" matching next_param, suitable for
-		# variable or function names.
-		next_param_identifier="$(argsparse_option_to_identifier "$next_param")"
 		# Set option value, if there should be one.
 		if argsparse_has_option_property "$next_param" value
 		then
@@ -669,22 +713,12 @@ __argsparse_parse_options_no_usage() {
 		else
 			unset value
 		fi
-
-		# If user has defined a specific setting hook for given the
-		# option, then use it, else use default standard
-		# option-setting function.
-		if declare -f "set_option_$next_param_identifier" >/dev/null 2>&1
-		then
-			set_hook="set_option_$next_param_identifier"
-		else
-			set_hook=argsparse_set_option
-		fi
 		# Invoke setting hook, and if it returns returns some non-zero
 		# status, send the user back to usage, if declared, and return
 		# with error.
 		# The specific $value substitution, here, is to distinguish an
 		# empty value from a no-value.
-		if ! "$set_hook" "$next_param" ${value+"$value"}
+		if ! __argsparse_set_option "$next_param" ${value+"$value"}
 		then
 			printf >&2 "%s: %s: Invalid value for %s option.\n" \
 				"$__argsparse_pgm" "$value" "$next_param"
@@ -728,7 +762,7 @@ argsparse_set_option_property() {
 	for option in "$@"
 	do
 		case "$property" in
-			mandatory|hidden|value|type:*|exclude:*)
+			type:*|exclude:*|alias:*)
 				if [[ "$property" =~ ^.*:(.+)$ ]]
 				then
 					# If property has a value, check its format, we
@@ -740,6 +774,10 @@ argsparse_set_option_property() {
 						return 1
 					fi
 				fi
+				;&
+			mandatory|hidden|value)
+				# We use the comma as the property character separator
+				# in the __argsparse_option_properties array.
 				p=${__argsparse_option_properties["$option"]}
 				__argsparse_option_properties["$option"]="${p:+$p,}$property"
 				;;
