@@ -1,0 +1,50 @@
+#!/bin/bash
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# Here is an option accepting a integer-typed value, by simply using
+# the 'type' property. Note that 'type' doesnt imply 'value'.
+argsparse_use_option option1 "An option" value type:int
+
+# Argsparse has a bunch of built-in types. Most of them are self explicit.
+argsparse_use_option file: "A regular file" value type:file
+argsparse_use_option directory: "A directory" value type:directory
+argsparse_use_option pipe: "An on-disk named FIFO" value type:pipe
+argsparse_use_option terminal: \
+	"A file descriptor pointing number to a terminal" value type:terminal
+argsparse_use_option socket: "An unix named socket" value type:socket
+argsparse_use_option link: "A symbolic link name" value type:link
+argsparse_use_option char: "A single char" value type:char
+# type:unsignedint is the same as type:uint 
+argsparse_use_option unsignedint "An unsigned integer" value type:uint
+# type:integer is the same as type:int
+argsparse_use_option int: "Just some random possibly negative integer" \
+	value type:int
+argsparse_use_option hexa: "Some hexadecimal value" value type:hexa
+# IP excludes IP4 and IP6 (and vice-versa)
+argsparse_use_option IP: "An IP (either v4 *or* v6) address" value type:ip
+# IP4 excludes IP6
+argsparse_use_option IP4: "An IPv4 address" value type:ipv4
+argsparse_use_option IP6: "An IPv6 address" value type:ipv6
+argsparse_use_option host: "Some host" value type:host
+
+# Type names are case insensitive, by the way.
+argsparse_use_option hostname: "Some host name (not an IP)" value type:hOsTnAmE
+
+printf -v argsparse_usage_description "%s\n" \
+	"A example script with type-checking options." \
+	"Try command lines such as:" \
+	" $0 --option1 something-wrong" \
+	" $0 --option1 123" \
+	" Also try playing with other options, giving either good or bad values."
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+printf "Options reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"

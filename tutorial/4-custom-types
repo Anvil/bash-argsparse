@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# Argsparse also allows user-defined types. To do so, just define a
+# check_option_type_<your_type_name> function.
+# E.g, for a `binary' type.
+
+check_option_type_binary() {
+	local value=$1
+	# the function must return 0 if the provided argument (the value
+	# submitted by the user) is valid.
+	[[ "$value" =~ ^[01]+$ ]]
+}
+
+# This function allows you to give the 'type' property the value
+# 'binary'.
+argsparse_use_option bin-option "An binary word." type:binary value
+
+printf -v argsparse_usage_description "%s\n" \
+	"A example script using user-defined types." \
+	"Try command lines such as:" \
+	" $0 --bin-option something-wrong" \
+	" $0 --bin-option 0101010101111"
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+printf "Options reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"

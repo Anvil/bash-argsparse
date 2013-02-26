@@ -1,0 +1,62 @@
+#!/bin/bash
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# In previous tutorials, we have already seen some properties: 
+# * short
+# * value
+# * type
+# * default
+
+# There exists other properties.
+
+# options with 'mandatory' property are not an option (sic). All
+# 'mandatory' must be set on the command line.
+argsparse_use_option option1 "A mandatory option." mandatory
+
+# The 'hidden' property hides an option to the user by not showing the
+# option in the usage message nor in the argsparse_report output.
+argsparse_use_option option2 "An hidden option." hidden
+
+# Options can exclude each others, through the 'exclude' property.
+argsparse_use_option option3 "A 3rd option."
+argsparse_use_option option4 "A 4th option." exclude:option3
+# The 'exclude' property value is actually a space-separated option list.
+argsparse_use_option option5 "A 5th option." exclude:'option3 option4'
+
+# You can set option aliases using the 'alias' property. Only options
+# without the 'value' property are accepted both as the alias and as
+# 'alias' property value.
+# As for the 'exclude' property, the 'alias' property value is a
+# space-separated option list.
+argsparse_use_option option6 "A 6th option." alias:'option1 option2 option3'
+
+# 
+printf -v argsparse_usage_description "%s\n" \
+	"A tutorial script teaching other argsparse option properties." \
+	"Try command lines such as:" \
+	" $0" \
+	" $0 -h" \
+	" $0 --option1" \
+	" $0 --option2" \
+	" $0 --option3 --option4" \
+	" $0 --option5 --option4" \
+	" $0 --option1 --option6"
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+printf "Options reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"
+
+if argsparse_is_option_set option2
+then
+	printf "The hidden option %s has been set. %d time(s)\n" option2 "${program_options[option2]}"
+else
+	printf "The hidden option %s remains hidden and unset.\n" option2
+fi

@@ -1,0 +1,54 @@
+#!/bin/bash
+#
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# We declare an option accepting a value by giving it the "value"
+# property.
+argsparse_use_option option1 "An option." value
+
+# Declaring an option accepting a value and not having a
+# single-char equivalent. (Alternative syntax)
+# Ending the option name by ':' is equivalent
+argsparse_use_option option2: "Another option."
+
+# Of course, options can accept multiple properties.
+argsparse_use_option option3 "A 3rd option." short:o value
+
+# Alternative syntaxes for the same thing.
+argsparse_use_option option4: "A 4th option." short:p
+argsparse_use_option op=tion5: "A 5th option."
+
+# Another option accepting a value, with a single-char equivalent.
+# Setting the "default" property to an option make it have a default
+# value. An option with a default value is considered as always set.
+argsparse_use_option option6 "A 6th option." short:i value default:some_value
+# Note that 'default' does not imply 'value'.
+
+# Declaring the option... 
+argsparse_use_option option7 "A 7th option."
+# ...and setting properties after.
+argsparse_set_option_property value option7
+argsparse_set_option_property short:n option7
+argsparse_set_option_property default:default_option7_value option7
+
+# 
+printf -v argsparse_usage_description "%s\n" \
+	"A example script with options accepting values." \
+	"Try command lines such as:" \
+	" $0 --help" \
+	" $0 --option1" \
+	" $0 --option1 my_value" \
+	" $0 -o some_other_value --option2 asdf" \
+	" $0 --option7 not_default_anymore"
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+printf "Options reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"

@@ -1,0 +1,74 @@
+#!/bin/bash
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# Declaring an option not accepting a value and not having a
+# single-char equivalent.
+argsparse_use_option option1 "An option."
+
+# Declaring an option not accepting a value but with a single-char
+# equivalent.
+
+# "short" is a property, and "o" is the value of the "short" property
+# for this option. Argsparse can handle other properties, see other
+# tutorials.
+argsparse_use_option option2 "Another option." short:o
+
+# Declaring an option not accepting a value but with a single-char
+# equivalent. (Alternative syntax)
+argsparse_use_option o=ption3 "A 3rd option."
+
+# You can declare an option without property...
+argsparse_use_option option4 "A 4th option."
+# ... and set a property after the declaration using the
+# argsparse_set_option_property function.
+argsparse_set_option_property short:4 option4 
+
+# argsparse_usage_description is a simple variable printed at the end
+# of the usage function invocation.
+printf -v argsparse_usage_description "%s\n" \
+	"A tutorial script for argsparse basics." \
+	"Try command lines such as:" \
+	" $0" \
+	" $0 -h" \
+	" $0 --option1" \
+	" $0 --option1 -h" \
+	" $0 --option2" \
+	" $0 -o -p -4" \
+	" $0 -op4" \
+	" $0 --doesnt-exist" \
+	" $0 --option1 -o -o -o one two 5"
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+printf "Options reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"
+
+for option in option{1..4}
+do
+	# This is the way you should test your options....
+	if argsparse_is_option_set "$option"
+	then
+		printf "%s was set %d time(s) on the command line.\n" \
+			"$option" \
+			"${program_options[$option]}" # ... and this is the way
+										  # you should access them.
+	else
+		printf "%s was not on the command line.\n" "$option"
+	fi
+done
+printf "\n"
+
+i=1
+# You can access all other script parameters through the
+# program_params array.
+for param in "${program_params[@]}"
+do
+	printf "Parameter #%s: %s\n" $((i++)) "$param"
+done
