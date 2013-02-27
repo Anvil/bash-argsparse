@@ -1,5 +1,6 @@
 #!/bin/bash
 #
+# Bash Argsparse Library
 # Author: Damien Nadé <bash-argsparse@livna.org>
 # URL: https://github.com/Anvil/bash-argsparse
 #
@@ -864,9 +865,12 @@ argsparse_use_option() {
 	#   * hidden: option wont show in default usage function.
 	#   * value: option expects a following value.
 	#   * short:c: option has a single-lettered (c) equivalent.
+	#   * exclude:"option1 [ option2 ... ]" @p opstring is not
+	#   compatible with option1, option2...
 	#   * The *last* non-keyword parameter will be considered as the
 	#     default value for the option. All other parameters and
 	#     values will be ignored.
+	# @return 0 if no error is encountered.
 	[[ $# -ge 2 ]] || return 1
 	local optstring=$1
 	local description=$2
