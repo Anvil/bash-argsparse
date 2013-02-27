@@ -14,16 +14,19 @@ Content
 -------
 
 * argsparse.sh: the library.
-* argsparse-test: a small demonstration script.
+* tutorial: a bunch of small demonstration scripts for new users.
 
 
 ### Testing
 
+Here are the topics covered by scripts in tutorial directory:
+* 1-basics: Bash Argsparse basics
+* 2-values: Options accepting values
+* 3-types: Type-checking
+* 4-custom-types: User-defined types
+* 5-properties: Option properties
+* 6-value-checking: Advanced value checking using argsparse
+* 7-setting-hook: Changing the way options are set
+* 8-misc: Other misc argsparse features.
 
-Try using the argsparse-test script.
-
-* Invoking it without any parameter will trigger the usage function :
-
-	$ ./argsparse-test
-
-* Try adding some options. Check argsparse-test source code for hints.
+Invoke each script without parameter or with --help to obtain usage message.
