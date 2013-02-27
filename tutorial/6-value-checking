@@ -39,7 +39,7 @@ check_value_of_long_option() {
 
 # 
 printf -v argsparse_usage_description "%s\n" \
-	"A tutorial script teaching other argsparse option properties." \
+	"A tutorial script teaching advanced value checking." \
 	"Try command lines such as:" \
 	" $0" \
 	" $0 -h" \
