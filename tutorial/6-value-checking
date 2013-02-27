@@ -1,0 +1,56 @@
+#!/bin/bash
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# Beside the 'type', you can control options user-given values by
+# using other methods.
+
+argsparse_use_option option1 "An enumerated option." value
+
+# *Instead* of declaring a type for the option, you can declare an
+# array named option_<optionname>_values, which will contain the
+# acceptable values for said option.
+option_option1_values=(only accepting those values)
+# Acceptable values are mentioned in argsparse usage.
+
+# And, after either type checking of enumerated values checking, you
+# have the possibility to simply define a function named
+# check_value_of_<optionname>. If the function return with value 0, it
+# means the value is correct. Any other value returned by the function
+# would make the value incorrect.
+argsparse_use_option option2 "An always bad option." value
+check_value_of_option2() {
+	# So, this would make all values return an error.
+	false
+}
+
+# If an option name contains '-' chars...
+argsparse_use_option long-option "An option with a long name." value
+# ... then the array name...
+option_long_option_values=(long option acceptable values)
+# ... and the function name must have '_' in place of '-'.
+check_value_of_long_option() {
+	local value=$1
+	[[ "$value" = long ]]
+}
+
+# 
+printf -v argsparse_usage_description "%s\n" \
+	"A tutorial script teaching other argsparse option properties." \
+	"Try command lines such as:" \
+	" $0" \
+	" $0 -h" \
+	" $0 --option1 only" \
+	" $0 --option2 something" \
+	" $0 --long-option only"
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+printf "Options reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"
