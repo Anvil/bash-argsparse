@@ -1,0 +1,59 @@
+#!/bin/bash
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# Miscellaneous other functions. See below.
+
+argsparse_use_option option1 "An option" value exclude:option2
+argsparse_use_option option2 "Another option"
+
+# 
+printf -v argsparse_usage_description "%s\n" \
+	"A tutorial script to show other misc argsparse features." \
+	"Try command lines such as:" \
+	" $0" \
+	" $0 -h" \
+	" $0 --option1 123a" \
+	" $0 --option2"
+
+# You can define your own usage function
+usage() {
+	printf "Beginning of usage\n"
+	# Unless you want it to be completely removed, you can still call
+	# argsparse_usage function to also have auto-generated argsparse
+	# usage message.
+	argsparse_usage
+	printf "End of usage\n"
+	# And perform your own exit.
+	exit 16
+}
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+# The argsparse_has_option_property function returns with 0 if a named
+# option has a named property. If the property has a value, it is
+# printed to standard input. So you can do things like that:
+if exclusion=$(argsparse_has_option_property option1 exclude)
+then
+	printf "The option %s excludes these other options: %s\n" \
+		option1 "$exclusion"
+fi
+
+for option in option1 option2
+do
+	if argsparse_has_option_property "$option" value
+	then
+		printf "%s has the value property.\n" "$option"
+	else
+		printf "%s does not have the value property.\n" "$option"
+	fi
+done
+
+printf "\nOptions reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"
