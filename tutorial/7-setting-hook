@@ -1,0 +1,77 @@
+#!/bin/bash
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# You can also change the way options are set by defining a function
+# named set_option_<optionname>.
+argsparse_use_option option1 "An option." value type:hexa
+
+set_option_option1() {
+	local option=$1
+	local value=$2
+	# You can do own stuff here. Whatever you want, including,
+	# transforming the value, calling other functions, performing some
+	# actions..
+	# E.g: you could enforce the 0x in front of a user-given
+	# hexadecimal value.
+	if [[ "$value" != 0x* ]]
+	then
+		value="0x$value"
+	fi
+	# This is the original argsparse setting action.
+	argsparse_set_option_with_value "$option" "$value"
+}
+
+# For options without value.
+argsparse_use_option option2 "Another option."
+
+set_option_option2() {
+	local option=$1
+	# Again, you can do whatever you want here.
+	: some command with some params.
+	# You dont have to do it, but it makes sense to call in the end
+	# the original argsparse action.
+	argsparse_set_otion_without_value "$option"
+}
+
+# This is a way to implement a cumulative option.
+argsparse_use_option cumul "A cumulative option." value
+
+all_cumul_values=()
+set_option_cumul() {
+	local option=$1
+	local value=$2
+	# Append the value to the array.
+	all_cumul_values+=( "$value" )
+	# Doing this will prevent the argsparse_is_option_set test from
+	# returning false.
+	argsparse_set_option_with_value "$option" 1
+}
+
+# 
+printf -v argsparse_usage_description "%s\n" \
+	"A tutorial script teaching how to change the way options are set." \
+	"Try command lines such as:" \
+	" $0" \
+	" $0 -h" \
+	" $0 --option1 123a" \
+	" $0 --option2" \
+	" $0 --cumul first --cumul second --cumul other"
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+printf "Options reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"
+
+printf "These are all the 'cumul' option values:\n"
+i=0
+for v in ${all_cumul_values[@]}
+do
+	printf "Value #%d: %s\n" $((++i)) "$v"
+done
