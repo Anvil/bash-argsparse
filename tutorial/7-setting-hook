@@ -34,7 +34,7 @@ set_option_option2() {
 	: some command with some params.
 	# You dont have to do it, but it makes sense to call in the end
 	# the original argsparse action.
-	argsparse_set_otion_without_value "$option"
+	argsparse_set_option_without_value "$option"
 }
 
 # This is a way to implement a cumulative option.
