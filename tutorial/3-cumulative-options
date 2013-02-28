@@ -1,0 +1,37 @@
+#!/bin/bash
+
+PATH="..:$PATH"
+
+# Load argsparse library.
+. argsparse.sh
+
+# It is possible to have cumulative options with argsparse. Cumulative
+# options can be repeated and all values are kept in an array.
+# To have a cumulative option just declare an option with the
+# 'cumulative' property.
+argsparse_use_option =option1 "A cumulative option" cumulative
+
+# 
+printf -v argsparse_usage_description "%s\n" \
+	"A tutorial script for cumulative options." \
+	"Try command lines such as:" \
+	" $0" \
+	" $0 -h" \
+	" $0 --option1 123" \
+	" $0 --option1 123 --o 456 --o 'foo bar'"
+
+# Command line parsing is done here.
+argsparse_parse_options "$@"
+
+printf "Options reporting:\n"
+# Simple reporting function.
+argsparse_report
+printf "End of argsparse report.\n\n"
+
+# 
+if argsparse_is_option_set option1
+then 
+	printf 'option1 has been set %d time(s):\nUser-given values are:\n' \
+		"${#cumulated_values_option1[@]}"
+	printf -- '- %s\n' "${cumulated_values_option1[@]}"
+fi
