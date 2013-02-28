@@ -419,6 +419,10 @@ _usage_long() {
 		fi
 		printf -- "$format" "$short" "--$long" \
 			"${__argsparse_options_descriptions["$long"]}"
+		if argsparse_has_option_property "$long" cumulative
+		then
+			printf "${bol}Can be repeated.\n"
+		fi
 		if argsparse_has_option_property "$long" value && \
 			array=$(__argsparse_values_array_identifier "$long")
 		then
@@ -976,17 +980,29 @@ __max_length() {
 }
 
 argsparse_report() {
-	local option
+	local option array_name value
 	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
+	local -a array
 	for option in "${!__argsparse_options_descriptions[@]}"
 	do
 		argsparse_has_option_property "$option" hidden && continue
 		printf "%- ${length}s\t: " "$option"
 		if argsparse_is_option_set "$option"
 		then
-			printf "%s (%s)\n" yes "${program_options[$option]}"
+			printf "yes (%s" "${program_options[$option]}"
+			if argsparse_has_option_property "$option" cumulative
+			then
+				array_name="$(__argsparse_get_cumulative_array_name "$option")[@]"
+				array=( "${!array_name}" )
+				printf ' time(s):'
+				for value in "${array[@]}"
+				do
+					printf ' %q' "$value"
+				done
+			fi
+			printf ')\n'
 		else
-			printf "%s\n" no
+			printf '%s\n' no
 		fi
 	done
 }
