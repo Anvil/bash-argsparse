@@ -37,7 +37,8 @@ set_option_option2() {
 	argsparse_set_option_without_value "$option"
 }
 
-# This is a way to implement a cumulative option.
+# This is a way to re-implement a cumulative option if you're
+# satisfied with the 'cumulative' property.
 argsparse_use_option cumul "A cumulative option." value
 
 all_cumul_values=()

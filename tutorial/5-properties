@@ -8,8 +8,9 @@ PATH="..:$PATH"
 # In previous tutorials, we have already seen some properties: 
 # * short
 # * value
-# * type
 # * default
+# * cumulative
+# * type
 
 # There exists other properties.
 

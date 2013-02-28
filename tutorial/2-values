@@ -7,7 +7,10 @@ PATH="..:$PATH"
 . argsparse.sh
 
 # We declare an option accepting a value by giving it the "value"
-# property.
+# property. By default, if an option with the "value" property is
+# repeated on the command line, only the last value is kept in
+# program_options. See other tutorials to learn how to have such
+# cumulative options.
 argsparse_use_option option1 "An option." value
 
 # Declaring an option accepting a value and not having a
