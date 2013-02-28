@@ -969,6 +969,8 @@ argsparse_is_option_set() {
 argsparse_use_option "=help" "Show this help message"
 
 __max_length() {
+	# Prints the length of the longest parameter _or_ 50.
+	# @param a list of strings
 	local max=50
 	shift
 	local max_length=0 str
@@ -980,6 +982,7 @@ __max_length() {
 }
 
 argsparse_report() {
+	# Prints a basic report of all passed options
 	local option array_name value
 	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
 	local -a array
