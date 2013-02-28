@@ -184,7 +184,7 @@ then
 	exit 1
 fi
 
-ARGSPARSE_INTERNAL_VERSION=1.1
+ARGSPARSE_INTERNAL_VERSION=1.3
 
 # This is an associative array. It should contains records of the form
 # "something" -> "Some usage descrition string".
