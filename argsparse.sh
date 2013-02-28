@@ -96,6 +96,18 @@
 #   Then if the user is doing --opt on the command line, it will be as
 #   if he would have done --opt1 --opt2
 #
+# * cumulative
+#   Implies 'value'.
+#   Everytime a cumulative option "optionname" is passed on the
+#   command line, the value is stored at the end of an array named
+#   "cumulated_values_<optionname>".
+#   e.g: for a script with an opt1 option declared this way:
+#   argsparse_use_option opt1 "some description" cumulative
+#   and invoked with: --opt1 value1 --opt1 value2
+#   after argsparse_parse_options, ${cumulated_values_opt1[0]} will
+#   expand to value1, and ${cumulated_values_opt1[1]} will expand to
+#   value2.
+#
 ##
 #
 # After the options are declared, invoke the function
@@ -256,13 +268,39 @@ argsparse_set_option_without_value() {
 }
 
 argsparse_set_option_with_value() {
-	# The default action to take for option with values.
+	# The default action to take for options with values.
 	# @param a long option name
 	# @param the value put on command line for given option.
 	[[ $# -ne 2 ]] && return 1
 	local option=$1
 	local value=$2
 	program_options["$option"]=$value
+}
+
+__argsparse_get_cumulative_array_name() {
+	# Prints the name of the array used to stored cumulated values of
+	# an option.
+	# @param an option name
+	[[ $# -ne 1 ]] && return 1
+	local option=$1
+	local ident=$(argsparse_option_to_identifier "$option")
+	printf "cumulated_values_%s" "$ident"
+}
+
+argsparse_set_cumulative_option() {
+	# The default action to take for cumulative options.
+	# @param a long option name
+	# @param the value put on command line for given option.
+	[[ $# -ne 2 ]] && return 1
+	local option=$1
+	local value=$2
+	local array="$(__argsparse_get_cumulative_array_name "$option")"
+	local size temp="$array[@]"
+	local -a copy
+	copy=( "${!temp}" )
+	size=${#copy[@]}
+	printf -v "$array[$size]" "%s" "$value"
+	argsparse_set_option_without_value "$option"
 }
 
 argsparse_set_alias() {
@@ -295,7 +333,10 @@ argsparse_set_option() {
 
 	if ! argsparse_set_alias "$option"
 	then
-		if argsparse_has_option_property "$option" value
+		if argsparse_has_option_property "$option" cumulative
+		then
+			argsparse_set_cumulative_option "$option" "$value"
+		elif argsparse_has_option_property "$option" value
 		then
 			argsparse_set_option_with_value "$option" "$value"
 		else
@@ -775,10 +816,13 @@ argsparse_set_option_property() {
 	[[ $# -lt 2 ]] && return 1
 	local property=$1
 	shift
-	local option p
+	local option p array
 	for option in "$@"
 	do
 		case "$property" in
+			cumulative)
+				argsparse_set_option_property value "$option"
+				;;&
 			type:*|exclude:*|alias:*)
 				if [[ "$property" =~ ^.*:(.+)$ ]]
 				then
@@ -792,7 +836,7 @@ argsparse_set_option_property() {
 					fi
 				fi
 				;&
-			mandatory|hidden|value)
+			mandatory|hidden|value|cumulative)
 				# We use the comma as the property character separator
 				# in the __argsparse_option_properties array.
 				p=${__argsparse_option_properties["$option"]}
