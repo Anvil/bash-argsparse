@@ -816,7 +816,7 @@ argsparse_set_option_property() {
 	[[ $# -lt 2 ]] && return 1
 	local property=$1
 	shift
-	local option p array
+	local option p
 	for option in "$@"
 	do
 		case "$property" in
