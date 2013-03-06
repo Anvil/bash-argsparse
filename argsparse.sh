@@ -39,16 +39,23 @@
 # The argsparse_use_option syntax is:
 #
 #     argsparse_use_option "optstring" "option description string" \
-#		"property1" "property2" "optional default value"
+#		[ "property" ... ] [ "optional default value" ]
 #
 # An "optstring" is of the form "som=estring:". This would declare a
-# long option named somestring. The ending ':' is optional and means,
-# if present, means the long option expects a value on the command
-# line. The '=' char is also optional and means the following letter
-# is the short single-letter equivalent option of --something.
+# long option named somestring. The ending ':' is optional and, if
+# present, means the long option expects a value on the command
+# line. The '=' char is also optional and means the immediatly
+# following letter is the short single-letter equivalent option of
+# --something.
 #
 # The 'something' string must only contains ASCII
 # letters/numbers/dash/underscore characters.
+#
+# What is referred later as "option" or "option name" (or even "long
+# option name") is the optstring without the ':' and '=' characters.
+#
+# TODO: There are some currently unhandled conflicts between foo-bar
+# and foo_bar options.
 #
 ##
 #
@@ -64,6 +71,7 @@
 #	by argsparse_parse_options.
 #
 # * "value"
+#   On the command line, the option will require a value.
 #	Same effect if you end your optstring with a ":" char.
 #
 # * "default:<defaultvalue>"
@@ -73,13 +81,14 @@
 #   The short single-letter equivalent of the option.
 #
 # * "type:<typename>"
-#	Give a type to the option value. User input will be checked
+#	Give a type to the option value. User input value will be checked
 #	against the check_type_<typename> function
 #
-# * "exclude:<optionname> <optionname>"
+# * "exclude:<option> <option>"
 #   The exclude property value is a space-separated list of other
-#   options names. User wont be able to provided to mutually exclusive
-#   option on the command line. 
+#   options. User wont be able to provided two mutually exclusive
+#   options on the command line.
+#
 #   e.g: if you set exclude property for the --foo option this way:
 #   argsparse_set_option_property "exclude:opt1 opt2" foo
 #   Then --opt1 and --foo are not allowed on the same command line
@@ -87,10 +96,11 @@
 #   This foo exclude property setting wouldnt make --opt1 and --opt2,
 #   mutually exclusive though.
 # 
-# * "alias:<optionname> <optionname>"
+# * "alias:<option> <option>"
 #   This property allows an option to set multiple other without-value
-#   options instead. Recursive aliases can be done but no loop
+#   options instead. Recursive aliases are permitted but no loop
 #   detection is made, so be careful.
+#
 #   e.g: if you declare an option 'opt' like this:
 #   argsparse_use_option opt "my description" "alias:opt1 opt2"
 #   Then if the user is doing --opt on the command line, it will be as
@@ -101,6 +111,7 @@
 #   Everytime a cumulative option "optionname" is passed on the
 #   command line, the value is stored at the end of an array named
 #   "cumulated_values_<optionname>".
+#
 #   e.g: for a script with an opt1 option declared this way:
 #   argsparse_use_option opt1 "some description" cumulative
 #   and invoked with: --opt1 value1 --opt1 value2
@@ -118,7 +129,7 @@
 #
 # * program_options, an associative array. For each record of the
 #   array:
-#   * The key is long option name.
+#   * The key is the long option name.
 #   * And about values:
 #
 #     * If option doesn't expect a value on the command line, the
@@ -129,10 +140,14 @@
 #       value of the last occurence of the option found on the command
 #       line.
 #
+#     * If option is cumulative, the array record value is the number
+#       of values passed by the user.
+#
 # After argsparse_parse_options invokation, you can check if an option
 # have was on the command line (or not) using the
 # argsparse_is_option_set function.
 #
+# e.g:
 # argsparse_is_option_set "long-option-name"
 #
 ##
@@ -187,13 +202,9 @@ fi
 ARGSPARSE_INTERNAL_VERSION=1.3
 
 # This is an associative array. It should contains records of the form
-# "something" -> "Some usage descrition string".
-# The "something" string is referred as the "optstring" later in
+# "something" -> "Some usage description string".
+# The "something" string is referred as the "option name" later in
 # source code and comments.
-# * If the --something option expects a value, then make the optstring
-#   ends with a colon char ':'.
-# * If the --something option can have a short single-lettered option
-#   equivalent like -s, then prefix the letter by an equal '=' char.
 declare -A __argsparse_options_descriptions=()
 
 # The program name
@@ -386,7 +397,8 @@ _usage_short() {
 }
 
 _usage_long() {
-	local long short sep format array aliases q=\' bol='\t\t  '
+	local long short sep format array aliases
+	local q=\' bol='\t\t  '
 	local -A long_to_short=()
 	local -a values
 	for short in "${!__argsparse_short_options[@]}"
