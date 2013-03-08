@@ -271,13 +271,13 @@ __argsparse_join_array() {
     # @param multiple string.
     local IFS="$1$IFS"
     shift
-    printf "%s" "$*"
+    printf %s "$*"
 }
 
 argsparse_option_to_identifier() {
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
-	printf "%s" "${option//-/_}"
+	printf %s "${option//-/_}"
 }
 
 # Following functions define the default option-setting hook and its
@@ -328,7 +328,7 @@ argsparse_set_cumulative_option() {
 	local -a copy
 	copy=( "${!temp}" )
 	size=${#copy[@]}
-	printf -v "$array[$size]" "%s" "$value"
+	printf -v "$array[$size]" %s "$value"
 	argsparse_set_option_without_value "$option"
 }
 
@@ -389,32 +389,44 @@ __argsparse_values_array_identifier() {
 	local option=$1
 	local array="option_${option}_values"
 	__argsparse_is_array_declared "$array" || return 1
-	printf "%s" "$array[@]"
+	printf %s "$array[@]"
 }
 
 _usage_short() {
-	local long values
-	printf "%s " "$__argsparse_pgm"
-	for long in "${!__argsparse_options_descriptions[@]}"
+	local option values current_line current_option bigger_line
+	local max_length=78
+	current_line=$__argsparse_pgm
+	for option in "${!__argsparse_options_descriptions[@]}"
 	do
-		if argsparse_has_option_property "$long" hidden
+		if argsparse_has_option_property "$option" hidden
 		then
 			continue
 		fi
-		argsparse_has_option_property "$long" mandatory || printf "[ "
-		printf -- "--%s " "$long"
-		if argsparse_has_option_property "$long" value
+		current_option="--$option"
+		if argsparse_has_option_property "$option" value
 		then
-			if values=$(__argsparse_values_array_identifier "$long")
+			if values=$(__argsparse_values_array_identifier "$option")
 			then
-				printf "<%s> " "$(__argsparse_join_array "|" "${!values}")"
+				current_option="$current_option <$(
+					__argsparse_join_array '|' "${!values}")>"
 			else
-				printf "arg "
+				current_option="$current_option arg"
 			fi
 		fi
-		argsparse_has_option_property "$long" mandatory || printf "] "
+		if ! argsparse_has_option_property "$option" mandatory
+		then
+			current_option="[ $current_option ]"
+		fi
+		bigger_line="$current_line $current_option"
+		if [[ "${#bigger_line}" -gt "$max_length" ]]
+		then
+			printf -- '%s \\\n' "$current_line"
+			printf -v current_line "\t%s" "$current_option"
+		else
+			current_line=$bigger_line
+		fi
 	done
-	printf "\n"
+	printf -- "%s\n" "$current_line"
 }
 
 _usage_long() {
