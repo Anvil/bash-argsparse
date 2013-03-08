@@ -205,6 +205,8 @@
 # * You cannot have a short option without a long option.
 # * Too few verifications about property values
 # * An option can conflict another ( '-' vs '_' )
+# * Compliance against some bash settings like nounset and errexit has
+#   not been proved.
 # 
 
 # We're not compatible with older bash versions.
@@ -234,7 +236,7 @@ argsparse_minimum_parameters() {
 	# Set the minimum number of non-option parameters expected on the
 	# command line. (the __argsparse_minimum_parameters value)
 	# @param a positive number.
-	[[ $# -ne 1 ]] && return 1
+	[[ $# -eq 1 ]] || return 1
 	local min=$1
 	[[ "$min" != +([0-9]) ]] && return 1
 	__argsparse_minimum_parameters=$min
@@ -248,7 +250,7 @@ __argsparse_index_of() {
     # @params: array keys
     # @return 0 if first parameter is amongst other parameters and
     # prints the found index. Else prints nothing and returns 1.
-    [[ $# -lt 2 ]] && return 1
+    [[ $# -ge 2 ]] || return 1
     local key=$1 ; shift
     local index=0
     local elem
@@ -273,7 +275,7 @@ __argsparse_join_array() {
 }
 
 argsparse_option_to_identifier() {
-	[[ $# -ne 1 ]] && return 1
+	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	printf "%s" "${option//-/_}"
 }
@@ -289,7 +291,7 @@ argsparse_option_to_identifier() {
 argsparse_set_option_without_value() {
 	# The default action to take for options without values.
 	# @param a long option name
-	[[ $# -ne 1 ]] && return 1
+	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	: $((program_options["$option"]++))
 }
@@ -298,7 +300,7 @@ argsparse_set_option_with_value() {
 	# The default action to take for options with values.
 	# @param a long option name
 	# @param the value put on command line for given option.
-	[[ $# -ne 2 ]] && return 1
+	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
 	program_options["$option"]=$value
@@ -308,7 +310,7 @@ __argsparse_get_cumulative_array_name() {
 	# Prints the name of the array used to stored cumulated values of
 	# an option.
 	# @param an option name
-	[[ $# -ne 1 ]] && return 1
+	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	local ident=$(argsparse_option_to_identifier "$option")
 	printf "cumulated_values_%s" "$ident"
@@ -318,7 +320,7 @@ argsparse_set_cumulative_option() {
 	# The default action to take for cumulative options.
 	# @param a long option name
 	# @param the value put on command line for given option.
-	[[ $# -ne 2 ]] && return 1
+	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
 	local array="$(__argsparse_get_cumulative_array_name "$option")"
@@ -332,7 +334,7 @@ argsparse_set_cumulative_option() {
 
 argsparse_set_alias() {
 	# This option will set all options aliased by another.
-	[[ $# -ne 1 ]] && return 
+	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	local aliases
 	if ! aliases="$(argsparse_has_option_property "$option" alias)"
@@ -354,9 +356,12 @@ argsparse_set_option() {
 	# This function is the default option-setting hook.
 	# @param an option name.
 	# @param an optional value.
-	[[ $# -ne 2 && $# -ne 1 ]] && return 1
+	[[ $# -eq 2 || $# -eq 1 ]] || return 1
 	local option=$1
-	[[ $# -eq 2 ]] && local value=$2
+	if [[ $# -eq 2 ]]
+	then
+		local value=$2
+	fi
 
 	if ! argsparse_set_alias "$option"
 	then
@@ -489,7 +494,7 @@ usage() {
 #
 
 __argsparse_is_array_declared() {
-	[[ $# -ne 1 ]] && return 1
+	[[ $# -eq 1 ]] || return 1
 	local array_name=$1
 	[[ "$(declare -p "$array_name" 2>/dev/null)" = \
 		"declare -"[aA]" $array_name='("* ]]
@@ -514,7 +519,7 @@ argsparse_check_option_type() {
 	# @param a type. A type name is case insensitive.
 	# @param a value to check
 	# @returns 0 if the value matches the given type format.
-	[[ $# -ne 2 ]] && return 1
+	[[ $# -eq 2 ]] || return 1
 	local option_type=${1,,}
 	local value=$2
 	local t
@@ -586,6 +591,7 @@ __argsparse_parse_options_valuecheck() {
 	# @param an option name
 	# @param a value
 	# @return 0 if value is correct for given option.
+	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
 	local identifier possible_values option_type
@@ -644,6 +650,7 @@ __argsparse_parse_options_check_exclusions() {
     # @param an option
     # @return 0 if the given option has actually excluded by annother
     # already-given option.
+	[[ $# -eq 1 ]] || return 1
     local new_option=$1
     local option
     
@@ -659,10 +666,10 @@ __argsparse_parse_options_check_exclusions() {
 }
 
 __argsparse_set_option() {
-	[[ $# -ne 1 && $# -ne 2 ]] && return 1 
+	[[ $# -eq 1 || $# -eq 2 ]] || return 1 
 	local option=$1
 	local set_hook identifier
-	[[ $# -eq 2 ]] && local value=$2
+	[[ $# -ne 2 ]] || local value=$2
 	# The "identifier string" matching next_param, suitable for
 	# variable or function names.
 	identifier="$(argsparse_option_to_identifier "$option")"
@@ -698,7 +705,7 @@ __argsparse_parse_options_no_usage() {
 	local longs shorts option
 
 	# No argument sends back to usage, if defined.
-	[[ $# -eq 0 ]] && return 1
+	[[ $# -ne 0 ]] || return 1
 
 	# 1. Analyze declared options to create getopt valid arguments.
 	for long in "${!__argsparse_options_descriptions[@]}"
@@ -845,7 +852,7 @@ argsparse_set_option_property() {
 	# @param a property name.
 	# @params option names.
 	# @return non-zero if property is not supported.
-	[[ $# -lt 2 ]] && return 1
+	[[ $# -ge 2 ]] || return 1
 	local property=$1
 	shift
 	local option p
@@ -902,7 +909,7 @@ argsparse_has_option_property() {
 	# @param an option name.
 	# @param a property name.
 	# @return 0 if option has given property.
-	[[ $# -ne 2 ]] && return 1
+	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local property=$2
 	local p=${__argsparse_option_properties["$option"]}
@@ -920,7 +927,7 @@ _argsparse_optstring_has_short() {
 	# Prints the short option string suitable for getopt command line.
 	# Returns non-zero if given optstring doesnt have any short option
 	# equivalent.
-	[[ $# -ne 1 ]] && return 1
+	[[ $# -eq 1 ]] || return 1
 	local optstring=$1
 	if [[ "$optstring" =~ .*=(.).* ]]
 	then
@@ -990,7 +997,7 @@ argsparse_use_option() {
 argsparse_is_option_set() {
 	# @param an option name
 	# @return 0 if given option has been set on the command line.
-	[[ $# -ne 1 ]] && return 1
+	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	[[ -n "${program_options[$option]+yes}" ]]
 }
