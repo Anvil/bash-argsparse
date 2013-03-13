@@ -10,6 +10,7 @@ PATH="..:$PATH"
 # To have a cumulative option just declare an option with the
 # 'cumulative' property.
 argsparse_use_option =option1 "A cumulative option" cumulative
+argsparse_use_option option2 "A uniqly-cumulative option" cumulativeset short:O
 
 # 
 printf -v argsparse_usage_description "%s\n" \
@@ -18,7 +19,8 @@ printf -v argsparse_usage_description "%s\n" \
 	" $0" \
 	" $0 -h" \
 	" $0 --option1 123" \
-	" $0 --option1 123 --o 456 --o 'foo bar'"
+	" $0 --option1 123 -o 456 -o 'foo bar'" \
+	" $0 --option2 123 -o 123 -o 456 -o 'foo bar' -o 456"
 
 # Command line parsing is done here.
 argsparse_parse_options "$@"
@@ -34,4 +36,11 @@ then
 	printf 'option1 has been set %d time(s):\nUser-given values are:\n' \
 		"${#cumulated_values_option1[@]}"
 	printf -- '- %s\n' "${cumulated_values_option1[@]}"
+fi
+
+if argsparse_is_option_set option2
+then 
+	printf 'option2 has been set %d time(s):\nUser-given values are:\n' \
+		"${#cumulated_values_option2[@]}"
+	printf -- '- %s\n' "${cumulated_values_option2[@]}"
 fi
