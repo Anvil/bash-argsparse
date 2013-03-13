@@ -247,7 +247,7 @@ argsparse_minimum_parameters() {
 	# @param a positive number.
 	[[ $# -eq 1 ]] || return 1
 	local min=$1
-	[[ "$min" != +([0-9]) ]] && return 1
+	[[ "$min" = +([0-9]) ]] || return 1
 	__argsparse_minimum_parameters=$min
 }
 
@@ -265,9 +265,12 @@ __argsparse_index_of() {
     local elem
     for elem in "$@"
     do
-      [[ "$key" != "$elem" ]] && : $((index++)) && continue
-      printf %s "$index"
-      return 0
+		if [[ "$key" = "$elem" ]]
+		then
+			printf %s "$index"
+			return 0
+		fi
+		: $((index++))
     done
 
     return 1
@@ -526,7 +529,7 @@ argsparse_usage() {
 	printf "\n"
 	# This will print option descriptions.
 	_usage_long
-	[[ -n "$argsparse_usage_description" ]] && \
+	[[ -z "$argsparse_usage_description" ]] || \
 		printf "\n%s\n" "$argsparse_usage_description"
 }
 
