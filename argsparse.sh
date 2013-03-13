@@ -100,7 +100,7 @@
 #   invokation. And same goes for --opt2 and --foo.
 #   This foo exclude property setting wouldnt make --opt1 and --opt2,
 #   mutually exclusive though.
-# 
+#
 # * "alias:<option> <option>"
 #   This property allows an option to set multiple other without-value
 #   options instead. Recursive aliases are permitted but no loop
@@ -207,7 +207,7 @@
 # * An option can conflict another ( '-' vs '_' )
 # * Compliance against some bash settings like nounset and errexit has
 #   not been proved.
-# 
+#
 
 # We're not compatible with older bash versions.
 if [[ "$BASH_VERSINFO" -lt 4 ]]
@@ -332,6 +332,21 @@ argsparse_set_cumulative_option() {
 	argsparse_set_option_without_value "$option"
 }
 
+argsparse_set_cumulativeset_option() {
+	# The default action to take for cumulativeset options.
+	# @param a long option name
+	# @param the value put on command line for given option.
+	[[ $# -eq 2 ]] || return 1
+	local option=$1
+	local value=$2
+	local array="$(__argsparse_get_cumulative_array_name "$option")[@]"
+	if ! __argsparse_index_of "$value" "${!array}" >/dev/null
+	then
+		# The value is not already in the array, so add it.
+		argsparse_set_cumulative_option "$option" "$value"
+	fi
+}
+
 argsparse_set_alias() {
 	# This option will set all options aliased by another.
 	[[ $# -eq 1 ]] || return 1
@@ -363,17 +378,24 @@ argsparse_set_option() {
 		local value=$2
 	fi
 
+	local -A setters=(
+		[cumulative]=argsparse_set_cumulative_option
+		[cumulativeset]=argsparse_set_cumulativeset_option
+		[value]=argsparse_set_option_with_value
+	)
+
 	if ! argsparse_set_alias "$option"
 	then
-		if argsparse_has_option_property "$option" cumulative
-		then
-			argsparse_set_cumulative_option "$option" "$value"
-		elif argsparse_has_option_property "$option" value
-		then
-			argsparse_set_option_with_value "$option" "$value"
-		else
-			argsparse_set_option_without_value "$option"
-		fi
+		# We dont use ${!setters[@]} here, because order matters.
+		for property in cumulative cumulativeset value
+		do
+			if argsparse_has_option_property "$option" "$property"
+			then
+				"${setters[$property]}" "$option" "$value"
+				return
+			fi
+		done
+		argsparse_set_option_without_value "$option"
 	fi
 }
 
@@ -665,7 +687,7 @@ __argsparse_parse_options_check_exclusions() {
 	[[ $# -eq 1 ]] || return 1
     local new_option=$1
     local option
-    
+
     for option in "${!program_options[@]}"
     do
 	if [[ "${exclusions["$option"]}" =~ ^(.* )?"$new_option"( .*)?$ ]]
@@ -678,7 +700,7 @@ __argsparse_parse_options_check_exclusions() {
 }
 
 __argsparse_set_option() {
-	[[ $# -eq 1 || $# -eq 2 ]] || return 1 
+	[[ $# -eq 1 || $# -eq 2 ]] || return 1
 	local option=$1
 	local set_hook identifier
 	[[ $# -ne 2 ]] || local value=$2
@@ -871,7 +893,7 @@ argsparse_set_option_property() {
 	for option in "$@"
 	do
 		case "$property" in
-			cumulative)
+			cumulative|cumulativeset)
 				argsparse_set_option_property value "$option"
 				;;&
 			type:*|exclude:*|alias:*)
@@ -887,7 +909,7 @@ argsparse_set_option_property() {
 					fi
 				fi
 				;&
-			mandatory|hidden|value|cumulative)
+			mandatory|hidden|value|cumulative|cumulativeset)
 				# We use the comma as the property character separator
 				# in the __argsparse_option_properties array.
 				p=${__argsparse_option_properties["$option"]}
