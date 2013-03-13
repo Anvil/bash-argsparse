@@ -124,6 +124,15 @@
 #   expand to value1, and ${cumulated_values_opt1[1]} will expand to
 #   value2.
 #
+# * cumulativeset
+#   Exactly like cumulative, except only uniq values are kept.
+#
+#   e.g: for a script with an opt1 option declared this way:
+#   argsparse_use_option opt1 "some description" cumulativeset
+#   and invoked with: --opt1 value1 --opt1 value2 --opt1 value1
+#   after argsparse_parse_options, ${cumulated_values_opt1[0]} will
+#   expand to value1, and ${cumulated_values_opt1[1]} will expand to
+#   value2. There would be no ${cumulated_values_opt1[2]} value.
 #
 # You can test if an option has a property using the
 # argsparse_has_option_property function.
@@ -149,8 +158,8 @@
 #       value of the last occurence of the option found on the command
 #       line.
 #
-#     * If option is cumulative, the array record value is the number
-#       of values passed by the user.
+#     * If option is cumulative (or cumulativeset), the array record
+#       value is the number of values passed by the user.
 #
 # After argsparse_parse_options invokation, you can check if an option
 # have was on the command line (or not) using the
@@ -486,7 +495,8 @@ _usage_long() {
 		fi
 		printf -- "$format" "$short" "--$long" \
 			"${__argsparse_options_descriptions["$long"]}"
-		if argsparse_has_option_property "$long" cumulative
+		if argsparse_has_option_property "$long" cumulative || \
+			argsparse_has_option_property "$long" cumulativeset
 		then
 			printf "${bol}Can be repeated.\n"
 		fi
