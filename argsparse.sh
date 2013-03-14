@@ -254,7 +254,7 @@ argsparse_minimum_parameters() {
 
 # 2 generic functions
 __argsparse_index_of() {
-    # Verifies if a key belongs to an array
+    # Checks if a key belongs to an array.
     # @param: a key
     # @params: array keys
     # @return 0 if first parameter is amongst other parameters and
@@ -1093,3 +1093,11 @@ argsparse_report() {
 		fi
 	done
 }
+
+return 0 >/dev/null 2>&1 ||:
+
+printf "The %s file is not a standalone program. It's a shell library.\n" \
+	"$__argsparse_pgm" 
+printf "%s\n\n" \
+	"To use it, you have to load it in your own bash shell scripts using the following line:"
+printf ". %q\n\n" "$0"
