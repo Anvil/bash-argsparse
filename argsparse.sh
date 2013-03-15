@@ -254,36 +254,35 @@ argsparse_minimum_parameters() {
 
 # 2 generic functions
 __argsparse_index_of() {
-    # Checks if a key belongs to an array.
-    # @param: a key
-    # @params: array keys
-    # @return 0 if first parameter is amongst other parameters and
-    # prints the found index. Else prints nothing and returns 1.
-    [[ $# -ge 2 ]] || return 1
-    local key=$1 ; shift
-    local index=0
-    local elem
-    for elem in "$@"
-    do
+	# Checks if a key belongs to an array.
+	# @param: a key
+	# @params: array keys
+	# @return 0 if first parameter is amongst other parameters and
+	# prints the found index. Else prints nothing and returns 1.
+	[[ $# -ge 2 ]] || return 1
+	local key=$1 ; shift
+	local index=0
+	local elem
+	for elem in "$@"
+	do
 		if [[ "$key" = "$elem" ]]
 		then
 			printf %s "$index"
 			return 0
 		fi
 		: $((index++))
-    done
-
-    return 1
+	done
+	return 1
 }
 
 __argsparse_join_array() {
-    # Like the 'join' string method in python, join multiple
-    # strings by a char.
-    # @param a single char
-    # @param multiple string.
-    local IFS="$1$IFS"
-    shift
-    printf %s "$*"
+	# Like the 'join' string method in python, join multiple
+	# strings by a char.
+	# @param a single char
+	# @param multiple string.
+	local IFS="$1$IFS"
+	shift
+	printf %s "$*"
 }
 
 argsparse_option_to_identifier() {
@@ -492,9 +491,9 @@ _usage_long() {
 		short=${long_to_short["$long"]}
 		if [[ -n "$short" ]]
 		then
-		    format=" -%s | %- 11s$sep%s\n"
+			format=" -%s | %- 11s$sep%s\n"
 		else
-		    format=" %s     %- 11s$sep%s\n"
+			format=" %s     %- 11s$sep%s\n"
 		fi
 		printf -- "$format" "$short" "--$long" \
 			"${__argsparse_options_descriptions["$long"]}"
@@ -668,7 +667,7 @@ argsparse_allow_no_argument() {
 	# @param if (case-insensitive) "yes", "true" or "1", the value is
 	# considered as affirmative. Anything else is a negative value.
 	# @return 0 unless there's more than one parameter (or none).
-	[[ $# -ne 1 ]] || return 1
+	[[ $# -eq 1 ]] || return 1
 	local param=$1
 	case "${param,,}" in
 		yes|true|1)
@@ -694,13 +693,13 @@ argsparse_parse_options() {
 
 
 __argsparse_parse_options_prepare_exclude() {
-    # Check for all "exclude" properties, and fill "exclusions"
-    # associative array, which should have been declared in
-    # __argsparse_parse_options_no_usage.
-    local option exclude excludestring
+	# Check for all "exclude" properties, and fill "exclusions"
+	# associative array, which should have been declared in
+	# __argsparse_parse_options_no_usage.
+	local option exclude excludestring
 	local -a excludes
-    for option in "${!__argsparse_options_descriptions[@]}"
-    do
+	for option in "${!__argsparse_options_descriptions[@]}"
+	do
 		excludestring=$(argsparse_has_option_property "$option" exclude) || \
 			continue
 		exclusions["$option"]+="${exclusions["$option"]:+ }$excludestring"
@@ -710,28 +709,28 @@ __argsparse_parse_options_prepare_exclude() {
 		do
 			exclusions["$exclude"]+="${exclusions["$exclude"]:+ }$option"
 		done
-    done
+	done
 }
 
 __argsparse_parse_options_check_exclusions() {
-    # Check if two options presents on the command line are mutually
-    # exclusive. Prints the "other" option if it's the case.
-    # @param an option
-    # @return 0 if the given option has actually excluded by annother
-    # already-given option.
+	# Check if two options presents on the command line are mutually
+	# exclusive. Prints the "other" option if it's the case.
+	# @param an option
+	# @return 0 if the given option has actually excluded by annother
+	# already-given option.
 	[[ $# -eq 1 ]] || return 1
-    local new_option=$1
-    local option
+	local new_option=$1
+	local option
 
-    for option in "${!program_options[@]}"
-    do
+	for option in "${!program_options[@]}"
+	do
 	if [[ "${exclusions["$option"]}" =~ ^(.* )?"$new_option"( .*)?$ ]]
 	then
-	    printf %s "$option"
-	    return 0
+		printf %s "$option"
+		return 0
 	fi
-    done
-    return 1
+	done
+	return 1
 }
 
 __argsparse_set_option() {
@@ -816,7 +815,7 @@ __argsparse_parse_options_no_usage() {
 
 	# 5. Prepare exclusions stuff.
 	__argsparse_parse_options_prepare_exclude
-	
+
 	# 6. Arguments parsing is really made here.
 	while [[ $# -ge 1 ]]
 	do
@@ -864,10 +863,10 @@ __argsparse_parse_options_no_usage() {
 		fi
 		if exclude=$(__argsparse_parse_options_check_exclusions "$next_param")
 		then
-		    printf >&2 \
+			printf >&2 \
 				"%s: %s: option excluded by other option (%s).\n" \
 				"$__argsparse_pgm" "$next_param" "$exclude"
-		    return 1
+			return 1
 		fi
 		# Set option value, if there should be one.
 		if argsparse_has_option_property "$next_param" value
@@ -1124,7 +1123,7 @@ argsparse_report() {
 return 0 >/dev/null 2>&1 ||:
 
 printf "The %s file is not a standalone program. It's a shell library.\n" \
-	"$__argsparse_pgm" 
+	"$__argsparse_pgm"
 printf "%s\n\n" \
 	"To use it, you have to load it in your own bash shell scripts using the following line:"
 printf ". %q\n\n" "$0"
