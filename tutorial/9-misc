@@ -31,8 +31,23 @@ usage() {
 	exit 16
 }
 
+# Allow empty command line
+argsparse_allow_no_argument yes
+
 # Command line parsing is done here.
 argsparse_parse_options "$@"
+
+if [[ $# -eq 0 ]]
+then
+	cat <<'information'
+Though this script has been called without any parameter, `usage' has
+not been triggered, due to the "argsparse_allow_no_argument yes"
+executed a few lines above in the script.
+
+To obtain the usage message, explicitly add --help on the command line.
+
+information
+fi
 
 # The argsparse_has_option_property function returns with 0 if a named
 # option has a named property. If the property has a value, it is
