@@ -619,7 +619,8 @@ argsparse_check_option_type() {
 			# Invoke user-defined type-checking function if available.
 			if ! declare -f "check_option_type_$option_type" >/dev/null
 			then
-				printf >&2 "%s: %s: type has no validation function. This is a bug.\n" \
+				printf >&2 \
+					"%s: %s: type has no validation function. This is a bug.\n" \
 					"$__argsparse_pgm" "$option_type"
 				exit 1
 			fi
@@ -656,6 +657,27 @@ __argsparse_parse_options_valuecheck() {
 		"check_value_of_$identifier" "$value" || return 1
 	fi
 	return 0
+}
+
+# Default behaviour is not to accept empty command lines.
+__argsparse_allow_no_argument=no
+
+argsparse_allow_no_argument() {
+	# Change argsparse behaviour for empty command lines. Default says
+	# no argument triggers usage.
+	# @param if (case-insensitive) "yes", "true" or "1", the value is
+	# considered as affirmative. Anything else is a negative value.
+	# @return 0 unless there's more than one parameter (or none).
+	[[ $# -ne 1 ]] || return 1
+	local param=$1
+	case "${param,,}" in
+		yes|true|1)
+			__argsparse_allow_no_argument=yes
+			;;
+		*)
+			__argsparse_allow_no_argument=no
+			;;
+	esac
 }
 
 argsparse_parse_options() {
@@ -752,7 +774,10 @@ __argsparse_parse_options_no_usage() {
 	local longs shorts option
 
 	# No argument sends back to usage, if defined.
-	[[ $# -ne 0 ]] || return 1
+	if [[ $# -eq 0 && "$__argsparse_allow_no_argument" != yes ]]
+	then
+		return 1
+	fi
 
 	# 1. Analyze declared options to create getopt valid arguments.
 	for long in "${!__argsparse_options_descriptions[@]}"
@@ -793,7 +818,7 @@ __argsparse_parse_options_no_usage() {
 	__argsparse_parse_options_prepare_exclude
 	
 	# 6. Arguments parsing is really made here.
-	while :
+	while [[ $# -ge 1 ]]
 	do
 		next_param=$1
 		shift
@@ -839,8 +864,9 @@ __argsparse_parse_options_no_usage() {
 		fi
 		if exclude=$(__argsparse_parse_options_check_exclusions "$next_param")
 		then
-		    printf "%s: %s: option excluded by other option (%s).\n" \
-			"$__argsparse_pgm" "$next_param" "$exclude"
+		    printf >&2 \
+				"%s: %s: option excluded by other option (%s).\n" \
+				"$__argsparse_pgm" "$next_param" "$exclude"
 		    return 1
 		fi
 		# Set option value, if there should be one.
@@ -916,7 +942,7 @@ argsparse_set_option_property() {
 					# dont want any funny chars.
 					if [[ "${BASH_REMATCH[1]}" = *[*?!,]* ]]
 					then
-						printf "%s: %s: invalid property value.\n" \
+						printf >&2 "%s: %s: invalid property value.\n" \
 							"$__argsparse_pgm" "${BASH_REMATCH[1]}"
 						return 1
 					fi
@@ -932,7 +958,8 @@ argsparse_set_option_property() {
 				short=${property#short:}
 				if [[ -n "${__argsparse_short_options[$short]}" ]]
 				then
-					printf "%s: %s: short option for %s conflicts with already-configured short option for %s. Aborting.\n" \
+					printf >&2 \
+						"%s: %s: short option for %s conflicts with already-configured short option for %s. Aborting.\n" \
 						"$__argsparse_pgm" "$short" "$option" \
 						"${__argsparse_short_options[$short]}"
 					exit 1
@@ -1062,7 +1089,7 @@ __max_length() {
 	do
 		max_length=$((max_length>${#str}?max_length:${#str}))
 	done
-	echo $((max_length>max?max:max_length))
+	printf %d "$((max_length>max?max:max_length))"
 }
 
 argsparse_report() {
