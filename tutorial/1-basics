@@ -70,5 +70,5 @@ i=1
 # program_params array.
 for param in "${program_params[@]}"
 do
-	printf "Parameter #%s: %s\n" $((i++)) "$param"
+	printf "Parameter #%d: %s\n" $((i++)) "$param"
 done
