@@ -1,0 +1,18 @@
+Source: bash-argsparse
+Section: libs
+Priority: optional
+Maintainer: Damien Nade <bash-argsparse@livna.org>
+Build-Depends: debhelper (>= 7.0.50)
+
+Package: bash-argsparse
+Architecture: all
+Depends: bash (>= 4), util-linux
+Description: An high level argument parsing library for bash 
+ An high level argument parsing library for bash.
+ .
+ The purpose is to replace the option-parsing and usage-describing
+ functions commonly rewritten in all scripts.
+ .
+ This library is implemented for bash version 4. Prior versions of
+ bash will fail at interpreting that code.
+ .
