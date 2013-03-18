@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+override_dh_install:
+	dh_install
+	rm -R debian/bash-argsparse
+	mkdir -p debian/bash-argsparse/usr/bin
+	install -m 0755 argsparse.sh debian/bash-argsparse/usr/bin
+
+%:
+	dh $@
