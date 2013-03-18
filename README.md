@@ -15,7 +15,8 @@ Content
 
 * argsparse.sh: the library.
 * tutorial: a bunch of small demonstration scripts for new users.
-
+* bash-argsparse.spec: a spec file to build RPM packages.
+* debian: the directory required to build deb packages
 
 ### Testing
 
