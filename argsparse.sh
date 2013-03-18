@@ -226,7 +226,7 @@ then
 	exit 1
 fi
 
-ARGSPARSE_INTERNAL_VERSION=1.4
+ARGSPARSE_VERSION=1.4
 
 # This is an associative array. It should contains records of the form
 # "something" -> "Some usage description string".
@@ -1124,6 +1124,7 @@ return 0 >/dev/null 2>&1 ||:
 
 printf "The %s file is not a standalone program. It's a shell library.\n" \
 	"$__argsparse_pgm"
-printf "%s\n\n" \
-	"To use it, you have to load it in your own bash shell scripts using the following line:"
-printf ". %q\n\n" "$0"
+printf "%s\n" \
+	"To use it, you have to load it in your own bash" \
+	"shell scripts using the following line:"
+printf "\n. %q\n\n" "$0"
