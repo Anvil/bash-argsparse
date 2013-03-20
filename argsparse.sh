@@ -78,7 +78,7 @@
 #
 # * "value"
 #   On the command line, the option will require a value.
-#	Same effect if you end your optstring with a ":" char.
+#	Same effect if you end your optstring with a ':' char.
 #
 # * "default:<defaultvalue>"
 #	The default value for the option.
@@ -650,6 +650,15 @@ argsparse_check_option_type() {
 				argsparse_check_option_type ipv4 "$value" || \
 				argsparse_check_option_type ipv6 "$value"
 			;;
+		port)
+			# Port number or service.
+			if argsparse_check_option_type uint "$value"
+			then
+				[[ "$value" -gt 0 && "$value" -le 65536 ]]
+			else
+				grep -q "^$value " /etc/services 2>/dev/null
+			fi
+			;;
 		*)
 			# Invoke user-defined type-checking function if available.
 			if ! declare -f "check_option_type_$option_type" >/dev/null
@@ -1070,7 +1079,7 @@ argsparse_use_option() {
 	#   * type:sometype
 	#   * The *last* non-keyword parameter will be considered as the
 	#     default value for the option. All other parameters and
-	#     values will be ignored.
+	#     values will be ignored. - might be broken / obsolete and broken
 	# @return 0 if no error is encountered.
 	[[ $# -ge 2 ]] || return 1
 	local optstring=$1
@@ -1124,8 +1133,9 @@ argsparse_is_option_set() {
 argsparse_use_option "=help" "Show this help message"
 
 __max_length() {
-	# Prints the length of the longest parameter _or_ 50.
-	# @param a list of strings
+	# Prints the length of the longest argument _or_ 50.
+	# @params a list of strings
+	# @return 0
 	local max=50
 	shift
 	local max_length=0 str
@@ -1138,6 +1148,8 @@ __max_length() {
 
 argsparse_report() {
 	# Prints a basic report of all passed options
+	# Kinda useful for a --debug, or a --verbose option.
+	# Parameters are ignored. Should return 0.
 	local option array_name value
 	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
 	local -a array
