@@ -928,6 +928,7 @@ declare -A program_options=()
 declare -a program_params=()
 
 argsparse_reset() {
+	# Reset important global arrays.
 	program_options=()
 	program_params=()
 	__argsparse_short_options=()
@@ -935,7 +936,6 @@ argsparse_reset() {
 
 
 # Option properties
-
 declare -A __argsparse_option_properties=()
 
 argsparse_set_option_property() {
@@ -977,10 +977,10 @@ argsparse_set_option_property() {
 				if [[ -n "${__argsparse_short_options[$short]}" ]]
 				then
 					printf >&2 \
-						"%s: %s: short option for %s conflicts with already-configured short option for %s. Aborting.\n" \
+						"%s: %s: short option for %s conflicts with already-configured short option for %s.\n" \
 						"$__argsparse_pgm" "$short" "$option" \
 						"${__argsparse_short_options[$short]}"
-					exit 1
+					return 1
 				fi
 				__argsparse_short_options["$short"]=$option
 				;;
@@ -1017,13 +1017,14 @@ declare -A __argsparse_short_options=()
 
 _argsparse_optstring_has_short() {
 	# Prints the short option string suitable for getopt command line.
-	# Returns non-zero if given optstring doesnt have any short option
+	# @param an optstring
+	# @return non-zero if given optstring doesnt have any short option
 	# equivalent.
 	[[ $# -eq 1 ]] || return 1
 	local optstring=$1
 	if [[ "$optstring" =~ .*=(.).* ]]
 	then
-		printf "%c" "${BASH_REMATCH[1]}"
+		printf %c "${BASH_REMATCH[1]}"
 		return 0
 	fi
 	return 1
