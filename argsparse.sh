@@ -251,6 +251,19 @@ argsparse_minimum_parameters() {
 	__argsparse_minimum_parameters=$min
 }
 
+# "Should be enough for everyone"
+__argsparse_maximum_parameters=1000000000
+
+argsparse_maximum_parameters() {
+	# Set the maximum number of non-option parameters expected on the
+	# command line. (the __argsparse_maximum_parameters value)
+	# @param a positive number.
+	[[ $# -eq 1 ]] || return 1
+	local max=$1
+	[[ "$max" = +([0-9]) ]] || return 1
+	__argsparse_maximum_parameters=$max
+}
+
 
 # 2 generic functions
 __argsparse_index_of() {
@@ -831,7 +844,12 @@ __argsparse_parse_options_no_usage() {
 				printf >&2 \
 					"%s: not enough parameters (at least %d expected, %d provided)\n" \
 					"$__argsparse_pgm" "$__argsparse_minimum_parameters" $#
-
+				return 1
+			elif [[ $# -gt "$__argsparse_maximum_parameters" ]]
+			then
+				printf >&2 \
+					"%s: too many parameters (maximum allowed is %d, %d provided)\n" \
+					"$__argsparse_pgm" "$__argsparse_maximum_parameters" $#
 				return 1
 			fi
 			# Save program parameters in array
