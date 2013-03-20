@@ -1,4 +1,5 @@
 #!/bin/bash
+# -*- encoding: utf-8 -*-
 #
 # Bash Argsparse Library
 # Author: Damien Nadé <bash-argsparse@livna.org>
@@ -137,6 +138,7 @@
 # You can test if an option has a property using the
 # argsparse_has_option_property function.
 # argsparse_has_option_property <option> <property>
+#
 ##
 #
 # After the options are declared, invoke the function
@@ -251,8 +253,8 @@ argsparse_minimum_parameters() {
 	__argsparse_minimum_parameters=$min
 }
 
-# "Should be enough for everyone"
-__argsparse_maximum_parameters=1000000000
+# "Should be enough for everyone". At least as a default.
+__argsparse_maximum_parameters=100000
 
 argsparse_maximum_parameters() {
 	# Set the maximum number of non-option parameters expected on the
@@ -779,7 +781,7 @@ __argsparse_parse_options_no_usage() {
 	# Be careful, the function is (too) big.
 
 	local long short getopt_temp next_param set_hook option_type
-	local next_param_identifier exclude
+	local next_param_identifier exclude value
 	local -a longs_array
 	local -A exclusions
 	# The getopt parameters.
@@ -897,8 +899,6 @@ __argsparse_parse_options_no_usage() {
 					"$__argsparse_pgm" "$value" "$next_param"
 				return 1
 			fi
-		else
-			unset value
 		fi
 		# Invoke setting hook, and if it returns returns some non-zero
 		# status, send the user back to usage, if declared, and return
@@ -911,6 +911,7 @@ __argsparse_parse_options_no_usage() {
 				"$__argsparse_pgm" "$value" "$next_param"
 			return 1
 		fi
+		unset value
 	done
 	return 0
 }
@@ -1042,6 +1043,7 @@ argsparse_use_option() {
 	#   * exclude:"option1 [ option2 ... ]" option is not
 	#   compatible with other options option1, option2...
 	#   * cumulative
+	#   * cumulativeset
 	#   * type:sometype
 	#   * The *last* non-keyword parameter will be considered as the
 	#     default value for the option. All other parameters and
