@@ -16,9 +16,12 @@ The argsparse library offers script developpers:
 
 * Automatic help message generation
 * Simple option declarations
-* Different option types: simple, with value, with cumulative (uniq or not) values
+* Different option types: simple, with value, with cumulative (uniq or
+  not) values
 * User-input checkings (either by type, enumerations or custom checking)
 * Hook settings
+* Option properties making them excluding each other, aliasing other
+  options, or (sic) non-optional.
 
 
 ### Requirements
