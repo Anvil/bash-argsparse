@@ -7,7 +7,11 @@ URL: https://github.com/Anvil/bash-argsparse
 Source0: http://argsparse.livna.org/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
+# The interpreter, with its minimal version.
 Requires: bash >= 4.1
+# Argsparse some very few binaries: getopt contained in util-linux,
+# getent contained in glibc-common and host contained in bind-utils.
+Requires: util-linux glibc-common bind-utils
 
 %description
 An high level argument parsing library for bash.
@@ -41,6 +45,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Thu Mar 14 2013 Dams <anvil[AT]livna.org> - 1.4-0
+* Thu Mar 21 2013 Dams <bash-argsparse[AT]livna.org> - 1.5-0
+- Version 1.5
+- Updated Requires
+
+* Thu Mar 14 2013 Dams <bash-argsparse[AT]livna.org> - 1.4-0
 - Initial build.
 
