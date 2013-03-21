@@ -35,7 +35,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc tutorial
+%doc tutorial README.md
 %{_bindir}/argsparse
 %{_bindir}/argsparse.sh
 
