@@ -252,7 +252,7 @@ shopt -s extglob
 declare -A __argsparse_options_descriptions=()
 
 # The program name
-__argsparse_pgm="${0##*/}"
+__argsparse_pgm=${0##*/}
 
 
 # The default minimum parameters requirement for command line.
@@ -619,7 +619,7 @@ argsparse_check_option_type() {
 			[ -"${option_type:0:1}" "$value" ]
 			;;
 		socket|link)
-			t="${option_type:0:1}"
+			t=${option_type:0:1}
 			[ -"${t^^}" "$value" ]
 			;;
 		char)
@@ -858,9 +858,9 @@ __argsparse_parse_options_no_usage() {
 		if argsparse_has_option_property \
 			"${__argsparse_short_options[$short]}" value
 		then
-			shorts="$shorts$short:"
+			shorts+="$short:"
 		else
-			shorts="$shorts$short"
+			shorts+=$short
 		fi
 	done
 
@@ -921,10 +921,10 @@ __argsparse_parse_options_no_usage() {
 					"$__argsparse_pgm" "$next_param"
 				return 1
 			fi
-			next_param="${__argsparse_short_options[$next_param]}"
+			next_param=${__argsparse_short_options[$next_param]}
 		else
 			# Wasnt a short option. Just strip the leading dash.
-			next_param="${next_param#--}"
+			next_param=${next_param#--}
 		fi
 		if exclude=$(__argsparse_parse_options_check_exclusions "$next_param")
 		then
@@ -1121,7 +1121,7 @@ argsparse_use_option() {
 		return 1
 	fi
 
-	__argsparse_options_descriptions["$long"]="$description"
+	__argsparse_options_descriptions["$long"]=$description
 
 	# Any other parameter to this function should be a property.
 	while [[ $# -ne 0 ]]
