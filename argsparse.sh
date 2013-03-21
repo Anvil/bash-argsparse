@@ -215,16 +215,6 @@
 #
 ##
 #
-##
-#
-# Known limitations and bugs:
-# * You cannot have a short option without a long option.
-# * Too few verifications about property values
-# * An option can conflict another ( '-' vs '_' )
-# * Compliance against some bash settings like nounset and errexit has
-#   not been proved.
-#
-
 # We're not compatible with older bash versions.
 if [[ "$BASH_VERSINFO" -lt 4 ]]
 then
