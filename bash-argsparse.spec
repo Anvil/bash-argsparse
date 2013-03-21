@@ -28,17 +28,12 @@ will fail at interpreting that code.
 %build
 
 %install
-rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{_bindir}
 install -m 0755 argsparse.sh $RPM_BUILD_ROOT/%{_bindir}
 ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 
 %files
-%defattr(-,root,root,-)
 %doc tutorial README.md
 %{_bindir}/argsparse
 %{_bindir}/argsparse.sh
@@ -48,6 +43,7 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Mar 21 2013 Dams <bash-argsparse[AT]livna.org> - 1.5-0
 - Version 1.5
 - Updated Requires
+- Removed old/fedora-obsolete directives/noise
 
 * Thu Mar 14 2013 Dams <bash-argsparse[AT]livna.org> - 1.4-0
 - Initial build.
