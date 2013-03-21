@@ -20,7 +20,7 @@ tarballs at the following URL:
 
 ### Features
 
-The argsparse library offers script developpers:
+The argsparse library offers to script developpers the following features:
 
 * Automatic help message generation
 * Simple option declarations
@@ -34,16 +34,16 @@ The argsparse library offers script developpers:
 
 ### Requirements
 
-The basic features of argsparse requires no external commands except
-the quite-common "getopt" command. Some built-in type checkings may
-require some other (like "host" and "getent") but you do not have to
-use those type.
+A basic argsparse run requires no external commands except the
+quite-common "getopt" command. Some argsparse-built-in type checkings
+may require some other (like "host" and "getent") but you do not have
+to use those type.
 
 Argsparse relies on a lot of bash built-in commands ("printf", "[",
 "read", ...) and internal features such as arrays, associative arrays,
 extended (ksh-like) globbing.
 
-The 'extglob' shell option is automatically enabled when loading
+The "extglob" shell option is automatically enabled when loading
 the argsparse library.
 
 The code has been tested on bash 4.1 and 4.2 and is definitely not
