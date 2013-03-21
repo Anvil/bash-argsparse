@@ -5,6 +5,7 @@ override_dh_install:
 	rm -R debian/bash-argsparse
 	mkdir -p debian/bash-argsparse/usr/bin
 	install -m 0755 argsparse.sh debian/bash-argsparse/usr/bin
+	ln -s argsparse.sh debian/bash-argsparse/usr/bin/argsparse
 
 %:
 	dh $@
