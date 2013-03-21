@@ -12,9 +12,11 @@ bash will fail at interpreting that code.
 
 ### Tarballs
 
-You can download tarballs at:
+Though Bash Argsparse is hosted at
+[github](https://github.com/Anvil/bash-argsparse), you can download
+tarballs at the following URL:
+[http://argsparse.livna.org/](http://argsparse.livna.org/)
 
-    http://argsparse.livna.org/
 
 ### Features
 
