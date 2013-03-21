@@ -27,6 +27,7 @@ will fail at interpreting that code.
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/%{_bindir}
 install -m 0755 argsparse.sh $RPM_BUILD_ROOT/%{_bindir}
+ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -35,6 +36,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %doc tutorial
+%{_bindir}/argsparse
 %{_bindir}/argsparse.sh
 
 
