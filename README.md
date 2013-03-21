@@ -80,4 +80,5 @@ Known limitations (or bugs)
 * An option can conflict another ( '-' vs '_' ).
 * Compliance against some bash settings like nounset and errexit has
   not (yet) been proved, but is wished.
-* Compliance with Non-bind versions of host has not been tested.
+* Compliance with Non-bind versions of the "host" command has not been
+  tested.
