@@ -10,6 +10,12 @@ This library is implemented for bash version 4. Prior versions of
 bash will fail at interpreting that code.
 
 
+### Tarballs
+
+You can download tarballs at:
+
+    http://argsparse.livna.org/
+
 ### Features
 
 The argsparse library offers script developpers:
