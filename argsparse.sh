@@ -650,14 +650,17 @@ argsparse_check_option_type() {
 				argsparse_check_option_type ipv4 "$value" || \
 				argsparse_check_option_type ipv6 "$value"
 			;;
+		portnumber)
+			argsparse_check_option_type uint "$value" && \
+				[[ "$value" -gt 0 && "$value" -le 65536 ]]
+			;;
 		port)
 			# Port number or service.
-			if argsparse_check_option_type uint "$value"
-			then
-				[[ "$value" -gt 0 && "$value" -le 65536 ]]
-			else
-				grep -q "^$value " /etc/services 2>/dev/null
-			fi
+			argsparse_check_option_type portnumber "$value" || \
+				getent services "$value" 2>/dev/null
+			;;
+		username)
+			getent passwd "$value" 2>/dev/null
 			;;
 		*)
 			# Invoke user-defined type-checking function if available.
