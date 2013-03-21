@@ -10,6 +10,32 @@ This library is implemented for bash version 4. Prior versions of
 bash will fail at interpreting that code.
 
 
+### Features
+
+The argsparse library offers script developpers:
+
+* Automatic help message generation
+* Simple option declarations
+* Different option types: simple, with value, with cumulative (uniq or not) values.
+* User-input checkings (either by type, enumerations or custom checking)
+* Hook settings
+
+
+### Requirements
+
+The basic features of argsparse requires no external commands except
+the quite-common 'getopt' command. Some built-in type checkings may
+require some other (like host and getent) but you do not have to use
+those type.
+
+Argsparse uses a lot of bash built-in commands (printf, [[, [, read)
+and internal features such as arrays, associative arrays, globbing.
+
+The 'extglob' shell option is automatically enabled when loading
+the argsparse library.
+
+The code has been tested on bash 4.1 and 4.2.
+
 Content
 -------
 
