@@ -2,7 +2,7 @@ Summary: An high level argument parsing library for bash.
 Name: bash-argsparse
 Version: 1.5
 Release: 0%{?dist}
-License: WTFPL
+License: WTFPLv2
 URL: https://github.com/Anvil/bash-argsparse
 Source0: http://argsparse.livna.org/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
