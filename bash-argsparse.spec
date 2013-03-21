@@ -4,7 +4,7 @@ Version: 1.5
 Release: 0%{?dist}
 License: WTFPL
 URL: https://github.com/Anvil/bash-argsparse
-Source0: https://github.com/Anvil/bash-argsparse/archive/%{name}-%{version}.tar.gz
+Source0: http://argsparse.livna.org/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires: bash >= 4.1
