@@ -16,7 +16,7 @@ The argsparse library offers script developpers:
 
 * Automatic help message generation
 * Simple option declarations
-* Different option types: simple, with value, with cumulative (uniq or not) values.
+* Different option types: simple, with value, with cumulative (uniq or not) values
 * User-input checkings (either by type, enumerations or custom checking)
 * Hook settings
 
@@ -28,13 +28,15 @@ the quite-common 'getopt' command. Some built-in type checkings may
 require some other (like host and getent) but you do not have to use
 those type.
 
-Argsparse uses a lot of bash built-in commands (printf, [[, [, read)
-and internal features such as arrays, associative arrays, globbing.
+Argsparse uses a lot of bash built-in commands (printf, [, read,
+...)  and internal features such as arrays, associative arrays,
+globbing.
 
 The 'extglob' shell option is automatically enabled when loading
 the argsparse library.
 
-The code has been tested on bash 4.1 and 4.2.
+The code has been tested on bash 4.1 and 4.2 and is definitely not
+POSIX-compliant.
 
 Content
 -------
@@ -58,3 +60,13 @@ Here are the topics covered by scripts in tutorial directory:
 * 9-misc: Other misc argsparse features.
 
 Invoke each script without parameter or with --help to obtain usage message.
+
+Known limitations (or bugs)
+---------------------------
+
+* You cannot have a short option without a long option.
+* Too few verifications about property values are made.
+* An option can conflict another ( '-' vs '_' ).
+* Compliance against some bash settings like nounset and errexit has
+  not (yet) been proved, but is wished.
+
