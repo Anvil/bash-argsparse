@@ -27,13 +27,13 @@ The argsparse library offers script developpers:
 ### Requirements
 
 The basic features of argsparse requires no external commands except
-the quite-common 'getopt' command. Some built-in type checkings may
-require some other (like host and getent) but you do not have to use
-those type.
+the quite-common "getopt" command. Some built-in type checkings may
+require some other (like "host" and "getent") but you do not have to
+use those type.
 
-Argsparse uses a lot of bash built-in commands (printf, [, read,
-...)  and internal features such as arrays, associative arrays,
-globbing.
+Argsparse relies on a lot of bash built-in commands ("printf", "[",
+"read", ...) and internal features such as arrays, associative arrays,
+extended (ksh-like) globbing.
 
 The 'extglob' shell option is automatically enabled when loading
 the argsparse library.
