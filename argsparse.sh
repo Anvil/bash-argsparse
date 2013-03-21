@@ -657,10 +657,13 @@ argsparse_check_option_type() {
 		port)
 			# Port number or service.
 			argsparse_check_option_type portnumber "$value" || \
-				getent services "$value" 2>/dev/null
+				getent services "$value" >/dev/null 2>&1
 			;;
 		username)
-			getent passwd "$value" 2>/dev/null
+			getent passwd "$value" >/dev/null 2>&1
+			;;
+		group)
+			getent group "$value" >/dev/null 2>&1
 			;;
 		*)
 			# Invoke user-defined type-checking function if available.
