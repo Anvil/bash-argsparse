@@ -86,9 +86,14 @@
 # * "short:<char>"
 #   The short single-letter equivalent of the option.
 #
-# * "type:<typename>"
-#	Give a type to the option value. User input value will be checked
-#	against the check_type_<typename> function
+# * "type:<typename>" Give a type to the option value. User input
+#	value will be checked against built-in type verifications _or_ the
+#	check_type_<typename> function. You cannot override a built-in
+#	type. Built-in types are:
+#
+#   file directory pipe terminal socket link char unsignedint uint
+#   integer int hexa ipv4 ipv6 ip hostname host portnumber port
+#   username group
 #
 # * "exclude:<option> <option>"
 #   The exclude property value is a space-separated list of other
@@ -236,6 +241,9 @@ then
 fi
 
 ARGSPARSE_VERSION=1.4
+
+# Enable required features
+shopt -s extglob
 
 # This is an associative array. It should contains records of the form
 # "something" -> "Some usage description string".
