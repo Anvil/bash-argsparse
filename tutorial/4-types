@@ -10,36 +10,49 @@ PATH="..:$PATH"
 argsparse_use_option option1 "An option" value type:int
 
 # Argsparse has a bunch of built-in types. Most of them are self explicit.
-argsparse_use_option file: "A regular file" value type:file
-argsparse_use_option directory: "A directory" value type:directory
-argsparse_use_option pipe: "An on-disk named FIFO" value type:pipe
+argsparse_use_option file: "A regular file" type:file
+argsparse_use_option directory: "A directory" type:directory
+argsparse_use_option pipe: "An on-disk named FIFO" type:pipe
 argsparse_use_option terminal: \
-	"A file descriptor pointing number to a terminal" value type:terminal
-argsparse_use_option socket: "An unix named socket" value type:socket
-argsparse_use_option link: "A symbolic link name" value type:link
-argsparse_use_option char: "A single char" value type:char
+	"A file descriptor pointing number to a terminal" type:terminal
+argsparse_use_option socket: "An unix named socket" type:socket
+argsparse_use_option link: "A symbolic link name" type:link
+argsparse_use_option char: "A single char" type:char
 # type:unsignedint is the same as type:uint 
-argsparse_use_option unsignedint "An unsigned integer" value type:uint
+argsparse_use_option unsignedint: "An unsigned integer" type:uint
 # type:integer is the same as type:int
 argsparse_use_option int: "Just some random possibly negative integer" \
-	value type:int
-argsparse_use_option hexa: "Some hexadecimal value" value type:hexa
+	type:int
+argsparse_use_option hexa: "Some hexadecimal value" type:hexa
 # IP excludes IP4 and IP6 (and vice-versa)
-argsparse_use_option IP: "An IP (either v4 *or* v6) address" value type:ip
+argsparse_use_option IP: "An IP (either v4 *or* v6) address" type:ip
 # IP4 excludes IP6
-argsparse_use_option IP4: "An IPv4 address" value type:ipv4
-argsparse_use_option IP6: "An IPv6 address" value type:ipv6
-argsparse_use_option host: "Some host" value type:host
+argsparse_use_option IP4: "An IPv4 address" type:ipv4
+argsparse_use_option IP6: "An IPv6 address" type:ipv6
+argsparse_use_option host: "Some host" type:host
+argsparse_use_option user: "A system UNIX user name" type:username
+argsparse_use_option group: "A UNIX group name" type:group
+
+# A port number is just a regular postive <1-65535> integer.
+argsparse_use_option portnumber: "An IP port number" type:portnumber
+
+# An IP port can be referenced either by its port number or it can be
+# resolved using (among other things) the /etc/services file. 
+# The command "telnet localhost domain" would actually do 
+# "telnet 127.0.0.1 53"
+# Check the getserent(3) man page for details about this magic.
+argsparse_use_option port: "An IP port number _or_ name" type:port
 
 # Type names are case insensitive, by the way.
-argsparse_use_option hostname: "Some host name (not an IP)" value type:hOsTnAmE
+argsparse_use_option hostname: "Some host name (not an IP)" type:hOsTnAmE
 
 printf -v argsparse_usage_description "%s\n" \
 	"A example script with type-checking options." \
 	"Try command lines such as:" \
 	" $0 --option1 something-wrong" \
 	" $0 --option1 123" \
-	" Also try playing with other options, giving either good or bad values."
+	" Also try playing with other options, giving either good or bad values." \
+	" Check the comments in this script for some more informations."
 
 # Command line parsing is done here.
 argsparse_parse_options "$@"
