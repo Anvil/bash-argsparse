@@ -230,7 +230,7 @@ then
 	exit 1
 fi
 
-ARGSPARSE_VERSION=1.4
+ARGSPARSE_VERSION=1.5
 
 # Enable required features
 shopt -s extglob
