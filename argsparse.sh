@@ -453,7 +453,7 @@ argsparse_usage_short() {
 				current_option="$current_option <$(
 					__argsparse_join_array '|' "${!values}")>"
 			else
-				current_option="$current_option arg"
+				current_option="$current_option ${option^^}"
 			fi
 		fi
 		if ! argsparse_has_option_property "$option" mandatory
