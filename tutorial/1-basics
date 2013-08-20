@@ -17,9 +17,12 @@ argsparse_use_option option1 "An option."
 # tutorials.
 argsparse_use_option option2 "Another option." short:o
 
-# Declaring an option not accepting a value but with a single-char
-# equivalent. (Alternative syntax for "short:p")
+# Alternative syntax to declare an option with a single-char
+# equivalent. A '=' char can be put prior to a char in the option name
+# to make a single-letter equivalent. e.g:
 argsparse_use_option o=ption3 "A 3rd option."
+# does the same as:
+# argsparse_use_option option3 "A 3rd option." short:p
 
 # You can declare an option without property...
 argsparse_use_option option4 "A 4th option."
