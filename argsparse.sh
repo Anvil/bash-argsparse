@@ -300,12 +300,17 @@ __argsparse_join_array() {
 	# strings by a char.
 	# @param a single char
 	# @param multiple string.
+	[[ $# -ge 1 && $1 = ? ]] || return 1
 	local IFS="$1$IFS"
 	shift
 	printf %s "$*"
 }
 
 argsparse_option_to_identifier() {
+	# Transforms and prints an option name into a string which can be
+	# part of a function or variable name.
+	# @param an option name.
+	# @return 0
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	printf %s "${option//-/_}"
