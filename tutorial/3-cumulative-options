@@ -12,7 +12,7 @@ PATH="..:$PATH"
 argsparse_use_option =option1 "A cumulative option" cumulative
 
 # The cumulativeset property act exactly like cumulative, except that
-# there can not be any repetition of a value.
+# there can not be any repetition of a value, like in a python 'set'.
 
 # e.g: In this example, using "--option2 foo --option2 foo" wont add a
 # second 'foo' to option2 list of user-given values.
