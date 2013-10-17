@@ -10,7 +10,14 @@ PATH="..:$PATH"
 # To have a cumulative option just declare an option with the
 # 'cumulative' property.
 argsparse_use_option =option1 "A cumulative option" cumulative
-argsparse_use_option option2 "A uniqly-cumulative option" cumulativeset short:O
+
+# The cumulativeset property act exactly like cumulative, except that
+# there can not be any repetition of a value.
+
+# e.g: In this example, using "--option2 foo --option2 foo" wont add a
+# second 'foo' to option2 list of user-given values.
+argsparse_use_option option2 "A uniqly-cumulative option" \
+	cumulativeset short:O
 
 # 
 printf -v argsparse_usage_description "%s\n" \
@@ -20,7 +27,9 @@ printf -v argsparse_usage_description "%s\n" \
 	" $0 -h" \
 	" $0 --option1 123" \
 	" $0 --option1 123 -o 456 -o 'foo bar'" \
-	" $0 --option2 123 -o 123 -o 456 -o 'foo bar' -o 456"
+	" Also note the difference of behaviour between those 2 lines:" \
+	" $0 --option1 123 -o 123 -o 456 -o 'foo bar' -o 456" \
+	" $0 --option2 123 -O 123 -O 456 -O 'foo bar' -O 456"
 
 # Command line parsing is done here.
 argsparse_parse_options "$@"
