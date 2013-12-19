@@ -1130,6 +1130,16 @@ argsparse_use_option() {
 	done
 }
 
+argparse_option_description() {
+	# Prints to stdout the description of given option.
+	# @param an option name
+	# @return 0 if given option has been previously declared.
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	[[ -n "${__argsparse_options_descriptions[$option]+yes}" ]] && \
+		printf %s "${__argsparse_options_descriptions[$option]}"
+}
+
 argsparse_is_option_set() {
 	# @param an option name
 	# @return 0 if given option has been set on the command line.
