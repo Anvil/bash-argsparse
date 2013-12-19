@@ -1130,7 +1130,7 @@ argsparse_use_option() {
 	done
 }
 
-argparse_option_description() {
+argsparse_option_description() {
 	# Prints to stdout the description of given option.
 	# @param an option name
 	# @return 0 if given option has been previously declared.
