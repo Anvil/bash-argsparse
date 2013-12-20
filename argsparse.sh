@@ -1168,11 +1168,18 @@ __max_length() {
 argsparse_report() {
 	# Prints a basic report of all passed options
 	# Kinda useful for a --debug, or a --verbose option.
-	# Parameters are ignored. Should return 0.
+	# @params a list of option name. If omitted all options will be displayed.
+	# Should return 0.
 	local option array_name value
 	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
-	local -a array
-	for option in "${!__argsparse_options_descriptions[@]}"
+	local -a array options
+	if [[ $# -eq 0 ]]
+	then
+		options=( "${!__argsparse_options_descriptions[@]}" )
+	else
+		options=( "$#" )
+	fi
+	for option in "${options[@]}"
 	do
 		argsparse_has_option_property "$option" hidden && continue
 		printf "%- ${length}s\t: " "$option"
