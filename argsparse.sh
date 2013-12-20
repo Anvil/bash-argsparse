@@ -1177,7 +1177,7 @@ argsparse_report() {
 	then
 		options=( "${!__argsparse_options_descriptions[@]}" )
 	else
-		options=( "$#" )
+		options=( "$@" )
 	fi
 	for option in "${options[@]}"
 	do
