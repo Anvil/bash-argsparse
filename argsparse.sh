@@ -1,9 +1,11 @@
 #!/bin/bash
 # -*- encoding: utf-8 -*-
 #
-# Bash Argsparse Library
-# Author: Damien Nadé <bash-argsparse@livna.org>
-# URL: https://github.com/Anvil/bash-argsparse
+## @file
+## @author Damien Nadé <bash-argsparse@livna.org>
+## @brief Bash Argsparse Library
+## @copyright WTFPLv2
+## @version 1.5
 #
 #########
 # License:
@@ -24,196 +26,218 @@
 #
 #########
 #
-# Description and purpose:
+## @details
+## @par URL
+## https://github.com/Anvil/bash-argsparse @n
 #
-# To replace the option-parsing and usage-describing functions
-# commonly rewritten in all scripts.
+## @par Purpose
 #
-# This library is implemented for bash version 4. Prior versions of
-# bash will fail at interpreting that code.
+## To replace the option-parsing and usage-describing functions
+## commonly rewritten in all scripts.
+##
+## @par
+## This library is implemented for bash version 4. Prior versions of
+## bash will fail at interpreting that code.
 #
+## @par Usage
+## Use the argsparse_use_option() function to declare your options with
+## their single letter counterparts, along with their description.
+##
+## @par
+## The argsparse_use_option() syntax is:
+##
+## @code
+##     argsparse_use_option "optstring" "option description string" \
+##     [ "property" ... ] [ "optional default value" ]
+## @endcode
+##
+##
+## @par
+## An "optstring" is of the form "som=estring:". This would declare a
+## long option named somestring. The ending ":" is optional and, if
+## present, means the long option expects a value on the command
+## line. The "=" char is also optional and means the immediatly
+## following letter is the short single-letter equivalent option of
+## --something.
+##
+## @par
+## The "something" string must only contains ASCII
+## letters/numbers/dash/underscore characters.
+##
+## @par
+## What is referred later as "option" or "option name" (or even "long
+## option name") is the optstring without the ':' and '=' characters.
+##
+## @todo There are some currently unhandled conflicts between foo-bar
+## and foo_bar options.
+##
+###
+##
+## @par Options may have properties.
+##
+## Properties are set either at option declarations through the
+## argsparse_use_option() function, or using the
+## argsparse_set_option_property() function
+##
+## The currently supported properties are:
+##
+## @li "hidden" @n
+## 	An hidden option will not be shown in usage.
+##
+## @li "mandatory" @n
+##	An option marked as mandatory is required on the command line. If
+##	a mandatory option is omited by the user, usage will be triggered
+##	by argsparse_parse_options().
+##
+## @li "value" @n
+##   On the command line, the option will require a value.
+##	Same effect if you end your optstring with a ':' char.
+##
+## @li "default:<defaultvalue>" @n
+##	The default value for the option.
+##
+## @li "short:<char>" @n
+##   The short single-letter equivalent of the option.
+##
+## @li "type:<typename>" @n
+##   Give a type to the option value. User input value will be checked
+##	 against built-in type verifications _or_ the
+##	 "check_type_<typename>" function. You cannot override a built-in
+##	 type. Built-in types are:
+##
+## @code
+##   file directory pipe terminal socket link char unsignedint uint
+##   integer int hexa ipv4 ipv6 ip hostname host portnumber port
+##   username group
+## @endcode
+##
+## @li "exclude:<option> <option>" @n
+##   The exclude property value is a space-separated list of other
+##   options. User wont be able to provided two mutually exclusive
+##   options on the command line. @n
+##
+##   e.g: if you set exclude property for the --foo option this way:
+##   @code argsparse_set_option_property "exclude:opt1 opt2" foo @endcode
+##   Then --opt1 and --foo are not allowed on the same command line
+##   invokation. And same goes for --opt2 and --foo.
+##   This foo exclude property setting wouldnt make --opt1 and --opt2,
+##   mutually exclusive though.
+##
+## @li "alias:<option> <option>" @n
+##   This property allows an option to set multiple other without-value
+##   options instead. Recursive aliases are permitted but no loop
+##   detection is made, so be careful. @n
+##   e.g: if you declare an option 'opt' like this:
+##   @code argsparse_use_option opt "my description" "alias:opt1 opt2" @endcode
+##   Then if the user is doing --opt on the command line, it will be as
+##   if he would have done --opt1 --opt2
+##
+## @li cumulative @n
+##   Implies 'value'.
+##   Everytime a cumulative option "optionname" is passed on the
+##   command line, the value is stored at the end of an array named
+##   "cumulated_values_<optionname>". @n
+##
+##   e.g: for a script with an opt1 option declared this way:
+##   @code argsparse_use_option opt1 "some description" cumulative @endcode
+##   and invoked with:
+##   @code --opt1 value1 --opt1 value2 @endcode
+##   after argsparse_parse_options(), "${cumulated_values_opt1[0]}" will
+##   expand to value1, and ${cumulated_values_opt1[1]} will expand to
+##   value2.
+##
+## @li cumulativeset @n
+##   Exactly like cumulative, except only uniq values are kept. @n
+##
+##   e.g: for a script with an opt1 option declared this way:
+##   @code argsparse_use_option opt1 "some description" cumulativeset @endcode
+##   and invoked with: 
+##   @code --opt1 value1 --opt1 value2 --opt1 value1 @endcode
+##   after argsparse_parse_options(), "${cumulated_values_opt1[0]}" will
+##   expand to value1, and "${cumulated_values_opt1[1]}" will expand to
+##   value2. There would be no "${cumulated_values_opt1[2]}" value.
+##
+## @par
+## You can test if an option has a property using the
+## argsparse_has_option_property() function.
+## @code argsparse_has_option_property <option> <property> @endcode
 ##
 #
-# Use the argsparse_use_option function to declare your options with
-# their single letter counterparts, along with the description.
-#
-# The argsparse_use_option syntax is:
-#
-#     argsparse_use_option "optstring" "option description string" \
-#		[ "property" ... ] [ "optional default value" ]
-#
-# An "optstring" is of the form "som=estring:". This would declare a
-# long option named somestring. The ending ':' is optional and, if
-# present, means the long option expects a value on the command
-# line. The '=' char is also optional and means the immediatly
-# following letter is the short single-letter equivalent option of
-# --something.
-#
-# The 'something' string must only contains ASCII
-# letters/numbers/dash/underscore characters.
-#
-# What is referred later as "option" or "option name" (or even "long
-# option name") is the optstring without the ':' and '=' characters.
-#
-# TODO: There are some currently unhandled conflicts between foo-bar
-# and foo_bar options.
+## @par Parsing positionnal parameters
+## After the options are declared, invoke the function
+## argsparse_parse_options() with the all script parameters. This will
+## define:
+##
+## @li program_params, an array, containing all non-option parameters.
+##
+## @li program_options, an associative array. For each record of the
+##   array:
+##   <ul>
+##   <li> The key is the long option name.
+##   <li> And about values:
+##    <ul>
+##    <li> If option doesn't expect a value on the command line, the
+##       value represents how many times the option has been
+##       found on the command line
+##
+##    <li> If option does require a value, the array record value is the
+##       value of the last occurence of the option found on the command
+##       line.
+##
+##    <li> If option is cumulative (or cumulativeset), the array record
+##       value is the number of values passed by the user.
+##    </ul>
+##   </ul>
+##
+## After argsparse_parse_options() invokation, you can check if an
+## option have was on the command line (or not) using the
+## argsparse_is_option_set() function. @n
+##
+## e.g:
+## @code argsparse_is_option_set "long-option-name" @endcode
+##
+###
+## @par The "usage()" function
+## If a 'usage' function is defined, and shall parse_option return with
+## non-zero status, 'usage' will be automatically called.
+##
+## @par
+## This library automatically defines a default 'usage' function,
+## which may be removed or overridden by the sourcing program
+## afterwards.
 #
 ##
-#
-# Options may have properties.
-#
-# Properties are set either at option declarations through the
-# argsparse_use_option function, or using the
-# argsparse_set_option_property function
-#
-# The currently supported properties are:
-#
-# * "hidden"
-# 	An hidden option will not be shown in usage.
-#
-# * "mandatory"
-#	An option marked as mandatory is required on the command line. If
-#	a mandatory option is omited by the user, usage will be triggered
-#	by argsparse_parse_options.
-#
-# * "value"
-#   On the command line, the option will require a value.
-#	Same effect if you end your optstring with a ':' char.
-#
-# * "default:<defaultvalue>"
-#	The default value for the option.
-#
-# * "short:<char>"
-#   The short single-letter equivalent of the option.
-#
-# * "type:<typename>" Give a type to the option value. User input
-#	value will be checked against built-in type verifications _or_ the
-#	check_type_<typename> function. You cannot override a built-in
-#	type. Built-in types are:
-#
-#   file directory pipe terminal socket link char unsignedint uint
-#   integer int hexa ipv4 ipv6 ip hostname host portnumber port
-#   username group
-#
-# * "exclude:<option> <option>"
-#   The exclude property value is a space-separated list of other
-#   options. User wont be able to provided two mutually exclusive
-#   options on the command line.
-#
-#   e.g: if you set exclude property for the --foo option this way:
-#   argsparse_set_option_property "exclude:opt1 opt2" foo
-#   Then --opt1 and --foo are not allowed on the same command line
-#   invokation. And same goes for --opt2 and --foo.
-#   This foo exclude property setting wouldnt make --opt1 and --opt2,
-#   mutually exclusive though.
-#
-# * "alias:<option> <option>"
-#   This property allows an option to set multiple other without-value
-#   options instead. Recursive aliases are permitted but no loop
-#   detection is made, so be careful.
-#
-#   e.g: if you declare an option 'opt' like this:
-#   argsparse_use_option opt "my description" "alias:opt1 opt2"
-#   Then if the user is doing --opt on the command line, it will be as
-#   if he would have done --opt1 --opt2
-#
-# * cumulative
-#   Implies 'value'.
-#   Everytime a cumulative option "optionname" is passed on the
-#   command line, the value is stored at the end of an array named
-#   "cumulated_values_<optionname>".
-#
-#   e.g: for a script with an opt1 option declared this way:
-#   argsparse_use_option opt1 "some description" cumulative
-#   and invoked with: --opt1 value1 --opt1 value2
-#   after argsparse_parse_options, ${cumulated_values_opt1[0]} will
-#   expand to value1, and ${cumulated_values_opt1[1]} will expand to
-#   value2.
-#
-# * cumulativeset
-#   Exactly like cumulative, except only uniq values are kept.
-#
-#   e.g: for a script with an opt1 option declared this way:
-#   argsparse_use_option opt1 "some description" cumulativeset
-#   and invoked with: --opt1 value1 --opt1 value2 --opt1 value1
-#   after argsparse_parse_options, ${cumulated_values_opt1[0]} will
-#   expand to value1, and ${cumulated_values_opt1[1]} will expand to
-#   value2. There would be no ${cumulated_values_opt1[2]} value.
-#
-# You can test if an option has a property using the
-# argsparse_has_option_property function.
-# argsparse_has_option_property <option> <property>
-#
+## @par Value setting internal logic
+## During option parsing, for every option of the form '--optionname'
+## expecting a value:
 ##
-#
-# After the options are declared, invoke the function
-# argsparse_parse_options with the all script parameters. This will
-# define:
-#
-# * program_params, an array, containing all non-option parameters.
-#
-# * program_options, an associative array. For each record of the
-#   array:
-#   * The key is the long option name.
-#   * And about values:
-#
-#     * If option doesn't expect a value on the command line, the
-#       value represents how many times the option has been
-#       found on the command line
-#
-#     * If option does require a value, the array record value is the
-#       value of the last occurence of the option found on the command
-#       line.
-#
-#     * If option is cumulative (or cumulativeset), the array record
-#       value is the number of values passed by the user.
-#
-# After argsparse_parse_options invokation, you can check if an option
-# have was on the command line (or not) using the
-# argsparse_is_option_set function.
-#
-# e.g:
-# argsparse_is_option_set "long-option-name"
-#
+## @li If there exists an array named "option_<optionname>_values" and
+##   the user-given value doesn't belong to that array, then the
+##   argsparse_parse_options function immediately returns with non-zero
+##   status, triggering 'usage'.
 ##
-#
-# If a 'usage' function is defined, and shall parse_option return with
-# non-zero status, 'usage' will be automatically called.
-#
-# This file automatically defines a default 'usage' function, which
-# may be removed or overridden by the program.
-#
+## @li If the "option_<optionname>_values" array does not exist, but if
+##   the option has a type property field, then the value format will
+##   be checked agaisnt that type.
 ##
-#
-# During option parsing, for every option of the form '--optionname'
-# expecting a value:
-#
-# * If there exists an array named 'option_<optionname>_values' and
-#   the user-given value doesn't belong to that array, then the
-#   argsparse_parse_options function immediately returns with non-zero
-#   status, triggering 'usage'.
-#
-# * If the 'option_<optionname>_values' array does not exist, but if
-#   the option has a type property field, then the value format will
-#   be checked agaisnt that type.
-#
-# * If a function named 'check_value_of_longtoption' has been defined,
-#   it will be called with the user-given value as its first
-#   positionnal parameter. If check_value_of_optionname returns with
-#   non-zero status, then parse_option immediately returns with
-#   non-zero status, triggering the 'usage' function.
-#
-# Also, still during option parsing and for *every* option of the form
-# '--optionname':
-#
-# * After value-checking, if a function named 'set_option_optionname'
-#   exists, then, instead of directly modifying the 'program_options'
-#   associative array, this function is automatically called with
-#   'optionname' as its first positionnal parameter, and, if
-#   'optionname' expected a value, the value is given as the function
-#   second positionnal parameter.
-#
+## @li If a function named "check_value_of_<optionname>" has been
+##   defined, it will be called with the user-given value as its first
+##   positionnal parameter. If check_value_of_optionname returns with
+##   non-zero status, then parse_option immediately returns with
+##   non-zero status, triggering the 'usage' function.
 ##
+## @par
+## Also, still during option parsing and for @b every option of the form
+## '--optionname':
+##
+## @li After value-checking, if a function named
+##   'set_option_<optionname>' exists, then, instead of directly
+##   modifying the 'program_options' associative array, this function
+##   is automatically called with 'optionname' as its first
+##   positionnal parameter, and, if 'optionname' expected a value, the
+##   value is given as the function second positionnal parameter.
+##
+###
 #
 # We're not compatible with older bash versions.
 if [[ "$BASH_VERSINFO" -lt 4 ]]
@@ -248,10 +272,14 @@ __argsparse_pgm=${0##*/}
 # The default minimum parameters requirement for command line.
 __argsparse_minimum_parameters=0
 
+## @fn argsparse_minimum_parameters()
+## @brief Set the minimum number of non-option parameters expected on
+## the command line.
+## @param unsigned_int a positive number.
+## @retval 0 if there is an unsigned integer is provided and is the
+## single parameter of this function.
+## @retval 1 in other cases.
 argsparse_minimum_parameters() {
-	# Set the minimum number of non-option parameters expected on the
-	# command line. (the __argsparse_minimum_parameters value)
-	# @param a positive number.
 	[[ $# -eq 1 ]] || return 1
 	local min=$1
 	[[ "$min" = +([0-9]) ]] || return 1
@@ -261,6 +289,13 @@ argsparse_minimum_parameters() {
 # "Should be enough for everyone". At least as a default.
 __argsparse_maximum_parameters=100000
 
+## @fn argsparse_maximum_parameters()
+## @brief Set the maximum number of non-option parameters expected on
+## the command line.
+## @param unsigned_int a positive number.
+## @retval 0 if there is an unsigned integer is provided and is the
+## single parameter of this function.
+## @retval 1 in other cases.
 argsparse_maximum_parameters() {
 	# Set the maximum number of non-option parameters expected on the
 	# command line. (the __argsparse_maximum_parameters value)
@@ -306,6 +341,12 @@ __argsparse_join_array() {
 	printf %s "$*"
 }
 
+## @fn argsparse_option_to_identifier()
+## @brief Give the identifier name associated to an option.
+## @details Transforms and prints an option name into a string which
+## suitable to be part of a function or a variable name.
+## @param option an option name.
+## @return 0
 argsparse_option_to_identifier() {
 	# Transforms and prints an option name into a string which can be
 	# part of a function or variable name.
@@ -324,18 +365,20 @@ argsparse_option_to_identifier() {
 # All user-defined option-setting hook should be defined like
 # argsparse_set_option
 
+## @fn argsparse_set_option_without_value()
+## @brief The option-setting hook for options not accepting values.
+## @param option a long option name
 argsparse_set_option_without_value() {
-	# The default action to take for options without values.
-	# @param a long option name
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	: $((program_options["$option"]++))
 }
 
+## @fn argsparse_set_option_with_value()
+## @brief "value" property specific option-setting hook.
+## @param option a long option name
+## @param value the value put on command line for given option.
 argsparse_set_option_with_value() {
-	# The default action to take for options with values.
-	# @param a long option name
-	# @param the value put on command line for given option.
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
@@ -352,10 +395,13 @@ __argsparse_get_cumulative_array_name() {
 	printf "cumulated_values_%s" "$ident"
 }
 
+
+## @fn argsparse_set_cumulative_option()
+## @brief "cumulative" property specific option-setting hook.
+## @details Default action to take for cumulative options.
+## @param option an option name
+## @param value the value put on command line for given option.
 argsparse_set_cumulative_option() {
-	# The default action to take for cumulative options.
-	# @param a long option name
-	# @param the value put on command line for given option.
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
@@ -368,10 +414,14 @@ argsparse_set_cumulative_option() {
 	argsparse_set_option_without_value "$option"
 }
 
+## @fn argsparse_set_cumulativeset_option()
+## @param option a option name
+## @param value
+## @brief "cumulativeset" property specific option-setting hook.
+## @details Will add @a value to the set of values of @a option. If @a
+## value is already present, then it is not re-added.
 argsparse_set_cumulativeset_option() {
 	# The default action to take for cumulativeset options.
-	# @param a long option name
-	# @param the value put on command line for given option.
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
@@ -383,6 +433,11 @@ argsparse_set_cumulativeset_option() {
 	fi
 }
 
+## @fn argsparse_set_alias()
+## @param option an option name
+## @brief "alias" property specific option-setting hook.
+## @details When an option is an alias for other option(s), then set
+## the aliases options.
 argsparse_set_alias() {
 	# This option will set all options aliased by another.
 	[[ $# -eq 1 ]] || return 1
@@ -403,10 +458,15 @@ argsparse_set_alias() {
 	done
 }
 
+## @fn argsparse_set_option()
+## @brief Default option-setting hook.
+## @param option The option being set.
+## @param value the value of the option (optional).
+## @details This function will be called by argsparse_parse_options()
+## whenever an option is being and no custom setting hook is define
+## for this option. Depending of the properties of the option a more
+## specific setting hook will be called.
 argsparse_set_option() {
-	# This function is the default option-setting hook.
-	# @param an option name.
-	# @param an optional value.
 	[[ $# -eq 2 || $# -eq 1 ]] || return 1
 	local option=$1
 	if [[ $# -eq 2 ]]
@@ -438,6 +498,10 @@ argsparse_set_option() {
 
 # The usage-related functions.
 
+## @fn argsparse_usage_short()
+## @details Generate and print the "short" description of the program
+## usage.
+## @return 0
 argsparse_usage_short() {
 	# This function generates and prints the short description of the
 	# program usage.
@@ -477,9 +541,10 @@ argsparse_usage_short() {
 	printf -- "%s\n" "$current_line"
 }
 
+## @fn argsparse_usage_long()
+## This function generates and prints the long description of the
+## program usage.
 argsparse_usage_long() {
-	# This function generates and prints the long description of the
-	# program usage.
 	local long short sep format array aliases
 	local q=\' bol='\t\t  '
 	local -A long_to_short=()
@@ -537,9 +602,14 @@ argsparse_usage_long() {
 	done
 }
 
+## @fn argsparse_usage()
+## @brief A generic help message generated from the options and their
+## descriptions.
+## @details Will print both a rather-short and a quite long
+## description of the program and its options. Just provided to be
+## wrapped in your own usage().
+## @return 0
 argsparse_usage() {
-	# This is a generic help message generated by the options and
-	# their descriptions.
 	# There's still a lot of room for improvement here.
 	argsparse_usage_short
 	printf "\n"
@@ -549,13 +619,22 @@ argsparse_usage() {
 		printf "\n%s\n" "$argsparse_usage_description"
 }
 
+## @fn usage()
+## @brief Default usage function.
+## @details The default usage function. By default, it will be called
+## by argaparse_parse_options on error or if --help option provided by
+## user on the command line. It can easily be overwritten if it doesnt
+## suits your needs.
+## @return This function makes an @b exit with value 1
 usage() {
-	# The default usage function. It can easily be overwritten if it
-	# doesnt suits your needs.
 	argsparse_usage
 	exit 1
 }
 
+## @fn set_option_help()
+## @brief Default trigger for --help option.
+## @details will actually only call "usage" function.
+## @return whatever usage returns.
 set_option_help() {
 	# This is the default hook for the --help option.
 	usage
@@ -599,11 +678,13 @@ __argsparse_check_missing_options() {
 	[[ "$count" -eq 0 ]]
 }
 
+## @fn argsparse_check_option_type()
+## @brief Check if a value matches a given type.
+## @details Return True if @a value is of type @a type.
+## @param type a type. A type name is case insensitive.
+## @param value a value to check
+## @returns 0 if the value matches the given type format.
 argsparse_check_option_type() {
-	# Check if a value matches a given type.
-	# @param a type. A type name is case insensitive.
-	# @param a value to check
-	# @returns 0 if the value matches the given type format.
 	[[ $# -eq 2 ]] || return 1
 	local option_type=${1,,}
 	local value=$2
@@ -715,12 +796,14 @@ __argsparse_parse_options_valuecheck() {
 # Default behaviour is not to accept empty command lines.
 __argsparse_allow_no_argument=no
 
+## @fn argsparse_allow_no_argument()
+## @brief Allow empty command lines to run.
+## @details Change argsparse behaviour for empty command
+## lines. Default says "no argument triggers usage".
+## @param string if (case-insensitive) "yes", "true" or "1", the value
+## is considered as affirmative. Anything else is a negative value.
+## @return 0 unless there's more than one parameter (or none).
 argsparse_allow_no_argument() {
-	# Change argsparse behaviour for empty command lines. Default says
-	# no argument triggers usage.
-	# @param if (case-insensitive) "yes", "true" or "1", the value is
-	# considered as affirmative. Anything else is a negative value.
-	# @return 0 unless there's more than one parameter (or none).
 	[[ $# -eq 1 ]] || return 1
 	local param=$1
 	case "${param,,}" in
@@ -733,12 +816,15 @@ argsparse_allow_no_argument() {
 	esac
 }
 
+## @fn argsparse_parse_options()
+## @brief parse program options.
+## @details This function will make option parsing happen, and if an error
+## is detected, the usage function will be invoked, if it has been
+## defined. If it's not defined, the function will return 1.
+## Parse options, and return if everything went fine.
+## @param parameters ... should be the program arguments.
+## @return 0 as if no error is encountered during option parsing.
 argsparse_parse_options() {
-	# @params should be the program arguments.
-	# This function will make option parsing happen, and if an error
-	# is detected, the usage function will be invoked, if it has been
-	# defined. If it's not defined, the function will return 1.
-	# Parse options, and return if everything went fine.
 	__argsparse_parse_options_no_usage "$@" && return
 	# Something went wrong, invoke usage function, if defined.
 	declare -f usage >/dev/null 2>&1 && usage
@@ -978,11 +1064,12 @@ argsparse_reset() {
 # Option properties
 declare -A __argsparse_option_properties=()
 
+## @fn argsparse_set_option_property()
+## @brief Enable a property to a list of options.
+## @param property a property name.
+## @param option ... option names.
+## @return non-zero if property is not supported.
 argsparse_set_option_property() {
-	# Enable a property to a list of options.
-	# @param a property name.
-	# @params option names.
-	# @return non-zero if property is not supported.
 	[[ $# -ge 2 ]] || return 1
 	local property=$1
 	shift
@@ -1035,12 +1122,14 @@ argsparse_set_option_property() {
 	done
 }
 
+## @fn argsparse_has_option_property()
+## @brief Determine if an option has a property.
+## @details Return 0 if property has been set for given option, and
+## print the property value, if available.
+## @param option an option name.
+## @param property a property name.
+## @return 0 if option has given property.
 argsparse_has_option_property() {
-	# Return 0 if property has been set for given option, and print
-	# the property value, if available.
-	# @param an option name.
-	# @param a property name.
-	# @return 0 if option has given property.
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local property=$2
@@ -1055,11 +1144,14 @@ argsparse_has_option_property() {
 # Association short option -> long option.
 declare -A __argsparse_short_options=()
 
+# @fn _argsparse_optstring_has_short()
+# @brief Internal use.
+# @details Prints the short option string suitable for getopt command
+# line.
+# @param optstring an optstring
+# @return non-zero if given optstring doesnt have any short option
+# equivalent.
 _argsparse_optstring_has_short() {
-	# Prints the short option string suitable for getopt command line.
-	# @param an optstring
-	# @return non-zero if given optstring doesnt have any short option
-	# equivalent.
 	[[ $# -eq 1 ]] || return 1
 	local optstring=$1
 	if [[ "$optstring" =~ .*=(.).* ]]
@@ -1070,26 +1162,28 @@ _argsparse_optstring_has_short() {
 	return 1
 }
 
+## @fn argsparse_use_option()
+## @brief Define a @b new option.
+## @param optstring an optstring.
+## @param description the option description, for the usage function.
+## @param property ... an non-ordered list of keywords. Recognized
+## keywords are:
+##   @li mandatory: missing option will trigger usage. If a default
+##     value is given, the option is considered as if provided on
+##     the command line.
+##   @li hidden: option wont show in default usage function.
+##   @li value: option expects a following value.
+##   @li short:c: option has a single-lettered (c) equivalent.
+##   @li exclude:"option1 [ option2 ... ]" option is not
+##   compatible with other options option1, option2...
+##   @li cumulative
+##   @li cumulativeset
+##   @li type:sometype
+##   @li The @b last non-keyword parameter will be considered as the
+##     default value for the option. All other parameters and
+##     values will be ignored. - might be broken / obsolete and broken
+## @return 0 if no error is encountered.
 argsparse_use_option() {
-	# Define a new option.
-	# @param an optstring.
-	# @param the option description, for the usage function.
-	# @params an non-ordered list of keywords. Recognized keywords are:
-	#   * mandatory: missing option will trigger usage. If a default
-	#     value is given, the option is considered as if provided on
-	#     the command line.
-	#   * hidden: option wont show in default usage function.
-	#   * value: option expects a following value.
-	#   * short:c: option has a single-lettered (c) equivalent.
-	#   * exclude:"option1 [ option2 ... ]" option is not
-	#   compatible with other options option1, option2...
-	#   * cumulative
-	#   * cumulativeset
-	#   * type:sometype
-	#   * The *last* non-keyword parameter will be considered as the
-	#     default value for the option. All other parameters and
-	#     values will be ignored. - might be broken / obsolete and broken
-	# @return 0 if no error is encountered.
 	[[ $# -ge 2 ]] || return 1
 	local optstring=$1
 	local description=$2
@@ -1130,19 +1224,22 @@ argsparse_use_option() {
 	done
 }
 
+## @fn argsparse_option_description()
+## @brief Prints to stdout the description of given option.
+## @param option an option name
+## @return 0 if given option has been previously declared.
 argsparse_option_description() {
-	# Prints to stdout the description of given option.
-	# @param an option name
-	# @return 0 if given option has been previously declared.
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	[[ -n "${__argsparse_options_descriptions[$option]+yes}" ]] && \
 		printf %s "${__argsparse_options_descriptions[$option]}"
 }
 
+## @fn argsparse_is_option_set()
+## @brief Return True if an option has been set on the command line.
+## @param option an option name
+## @return 0 if given option has been set on the command line.
 argsparse_is_option_set() {
-	# @param an option name
-	# @return 0 if given option has been set on the command line.
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	[[ -n "${program_options[$option]+yes}" ]]
@@ -1151,10 +1248,14 @@ argsparse_is_option_set() {
 # We do define a default --help option.
 argsparse_use_option "=help" "Show this help message"
 
+
+# @private
+# @fn __max_length()
+# @details Prints the length of the longest argument _or_ 50.
+# @brief Internal use.
+# @param string ... a list of strings
+# @return 0
 __max_length() {
-	# Prints the length of the longest argument _or_ 50.
-	# @params a list of strings
-	# @return 0
 	local max=50
 	shift
 	local max_length=0 str
@@ -1165,11 +1266,14 @@ __max_length() {
 	printf %d "$((max_length>max?max:max_length))"
 }
 
+## @fn argsparse_report()
+## @brief Prints a basic report of all passed options
+## @details Kinda useful for a --debug, or a --verbose option,
+## this function will print options and their values.
+## @param option ... A list of option name. If omitted all options
+## will be displayed.
+## @return 0.
 argsparse_report() {
-	# Prints a basic report of all passed options
-	# Kinda useful for a --debug, or a --verbose option.
-	# @params a list of option name. If omitted all options will be displayed.
-	# Should return 0.
 	local option array_name value
 	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
 	local -a array options
