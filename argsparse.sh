@@ -263,6 +263,9 @@ shopt -s extglob
 # "something" -> "Some usage description string".
 # The "something" string is referred as the "option name" later in
 # source code and comments.
+## @var AssociativeArray __argsparse_options_descriptions
+## @private
+## @brief Internal use only.
 declare -A __argsparse_options_descriptions=()
 
 # The program name
@@ -822,7 +825,7 @@ argsparse_allow_no_argument() {
 ## is detected, the usage function will be invoked, if it has been
 ## defined. If it's not defined, the function will return 1.
 ## Parse options, and return if everything went fine.
-## @param parameters ... should be the program arguments.
+## @param parameters... should be the program arguments.
 ## @return 0 as if no error is encountered during option parsing.
 argsparse_parse_options() {
 	__argsparse_parse_options_no_usage "$@" && return
@@ -1042,15 +1045,21 @@ __argsparse_parse_options_no_usage() {
 	return 0
 }
 
-# program_options is an associative array containing (if no hook is set)
-# 'longoption' -> value, if longoption accepts a value
-# or
-# 'longoption' -> how many times the option has been detected on the
-# 			      command line.
+## @var AssociativeArray program_options
+## @brief Options values.
+## @details
+## After argsparse_parse_options(), contains (if no hook is set for
+## "optionname")
+## @li "optionname" -> "value", if "optionname" accepts a value.
+## @li "optionname" -> "how many times the option has been detected on
+## the command line", else.
 declare -A program_options=()
 
-# program_params is a standard array which will contains all
-# non-option parameters. (Typically, everything found after the '--')
+## @var Array program_params
+## @brief Positionnal parameters of the script
+## @details
+## After argsparse_parse_options() will contains all non-option
+## parameters. (Typically, everything found after the '--')
 declare -a program_params=()
 
 argsparse_reset() {
@@ -1061,13 +1070,15 @@ argsparse_reset() {
 }
 
 
-# Option properties
+## @var AssociativeArray __argsparse_option_properties
+## @private
+## @brief Internal use only.
 declare -A __argsparse_option_properties=()
 
 ## @fn argsparse_set_option_property()
 ## @brief Enable a property to a list of options.
 ## @param property a property name.
-## @param option ... option names.
+## @param option... option names.
 ## @return non-zero if property is not supported.
 argsparse_set_option_property() {
 	[[ $# -ge 2 ]] || return 1
@@ -1142,6 +1153,9 @@ argsparse_has_option_property() {
 }
 
 # Association short option -> long option.
+## @var AssociativeArray __argsparse_short_options
+## @private
+## @brief Internal use only.
 declare -A __argsparse_short_options=()
 
 # @fn _argsparse_optstring_has_short()
@@ -1166,8 +1180,8 @@ _argsparse_optstring_has_short() {
 ## @brief Define a @b new option.
 ## @param optstring an optstring.
 ## @param description the option description, for the usage function.
-## @param property ... an non-ordered list of keywords. Recognized
-## keywords are:
+## @param property... an non-ordered list of keywords. Recognized
+## property keywords are:
 ##   @li mandatory: missing option will trigger usage. If a default
 ##     value is given, the option is considered as if provided on
 ##     the command line.
@@ -1253,7 +1267,7 @@ argsparse_use_option "=help" "Show this help message"
 # @fn __max_length()
 # @details Prints the length of the longest argument _or_ 50.
 # @brief Internal use.
-# @param string ... a list of strings
+# @param string... a list of strings
 # @return 0
 __max_length() {
 	local max=50
@@ -1270,7 +1284,7 @@ __max_length() {
 ## @brief Prints a basic report of all passed options
 ## @details Kinda useful for a --debug, or a --verbose option,
 ## this function will print options and their values.
-## @param option ... A list of option name. If omitted all options
+## @param option... A list of option name. If omitted all options
 ## will be displayed.
 ## @return 0.
 argsparse_report() {
