@@ -55,7 +55,9 @@ Content
 * argsparse.sh: the library.
 * tutorial: a bunch of small demonstration scripts for new users.
 * bash-argsparse.spec: a spec file to build RPM packages.
-* debian: the directory required to build deb packages
+* debian: the directory required to build deb packages.
+* Doxyfile: doxygen configuration file.
+* doxygen-bash.sed: a sed script used as an input filter for doxygen.
 
 ### Testing
 
