@@ -1,5 +1,5 @@
 #!/bin/bash
-# -*- encoding: utf-8 -*-
+# -*- tab-width: 4; encoding: utf-8 -*-
 #
 ## @file
 ## @author Damien Nadé <bash-argsparse@livna.org>
@@ -228,16 +228,20 @@
 ##
 ## @par
 ## Also, still during option parsing and for @b every option of the form
-## '--optionname':
+## "--optionname":
 ##
 ## @li After value-checking, if a function named
-##   'set_option_<optionname>' exists, then, instead of directly
-##   modifying the 'program_options' associative array, this function
+##   "set_option_<optionname>" exists, then, instead of directly
+##   modifying the "program_options" associative array, this function
 ##   is automatically called with 'optionname' as its first
 ##   positionnal parameter, and, if 'optionname' expected a value, the
 ##   value is given as the function second positionnal parameter.
 ##
-###
+## @par About functions return values...
+##
+## All the functions will return with an error (usually a return code
+## of 1) if called with a wrong number of parameters, and return with
+## 0 if everything went fine.
 #
 # We're not compatible with older bash versions.
 if [[ "$BASH_VERSINFO" -lt 4 ]]
@@ -300,9 +304,6 @@ __argsparse_maximum_parameters=100000
 ## single parameter of this function.
 ## @retval 1 in other cases.
 argsparse_maximum_parameters() {
-	# Set the maximum number of non-option parameters expected on the
-	# command line. (the __argsparse_maximum_parameters value)
-	# @param a positive number.
 	[[ $# -eq 1 ]] || return 1
 	local max=$1
 	[[ "$max" = +([0-9]) ]] || return 1
@@ -311,12 +312,16 @@ argsparse_maximum_parameters() {
 
 
 # 2 generic functions
+
+# @fn __argsparse_index_of()
+# @param value a value
+# @param values... array values
+# @brief Tells if a value is found in a set of other values.
+# @details Look for @a value and print its position in the @a values
+# set. Return false if it can not be found.
+# @retval 0 if @a value is amongst @a values
+# @retval 1 if @a value is not found.
 __argsparse_index_of() {
-	# Checks if a key belongs to an array.
-	# @param: a key
-	# @params: array keys
-	# @return 0 if first parameter is amongst other parameters and
-	# prints the found index. Else prints nothing and returns 1.
 	[[ $# -ge 2 ]] || return 1
 	local key=$1 ; shift
 	local index=0
@@ -333,11 +338,15 @@ __argsparse_index_of() {
 	return 1
 }
 
+# @fn __argsparse_join_array()
+# @param c a single char
+# @param strings... strings to join
+# @brief join multiple strings by a char.
+# @details Like the 'str.join' string method in python, join multiple
+# strings by a char. Only work with a single char, though.
+# @retval 1 if first parameter is invalid.
+# @retval 0 else.
 __argsparse_join_array() {
-	# Like the 'join' string method in python, join multiple
-	# strings by a char.
-	# @param a single char
-	# @param multiple string.
 	[[ $# -ge 1 && $1 = ? ]] || return 1
 	local IFS="$1$IFS"
 	shift
@@ -349,12 +358,7 @@ __argsparse_join_array() {
 ## @details Transforms and prints an option name into a string which
 ## suitable to be part of a function or a variable name.
 ## @param option an option name.
-## @return 0
 argsparse_option_to_identifier() {
-	# Transforms and prints an option name into a string which can be
-	# part of a function or variable name.
-	# @param an option name.
-	# @return 0
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	printf %s "${option//-/_}"
@@ -371,6 +375,7 @@ argsparse_option_to_identifier() {
 ## @fn argsparse_set_option_without_value()
 ## @brief The option-setting hook for options not accepting values.
 ## @param option a long option name
+## @retval 0
 argsparse_set_option_without_value() {
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
@@ -379,7 +384,7 @@ argsparse_set_option_without_value() {
 
 ## @fn argsparse_set_option_with_value()
 ## @brief "value" property specific option-setting hook.
-## @param option a long option name
+## @param option an option name
 ## @param value the value put on command line for given option.
 argsparse_set_option_with_value() {
 	[[ $# -eq 2 ]] || return 1
@@ -388,16 +393,18 @@ argsparse_set_option_with_value() {
 	program_options["$option"]=$value
 }
 
+# @fn __argsparse_get_cumulative_array_name()
+# @param option an option name
+# @brief Print the name of the array used for "cumulative" and
+# "cumulativeset" options.
+# @details For "option-name" usually prints
+# "cumulated_values_option_name".
 __argsparse_get_cumulative_array_name() {
-	# Prints the name of the array used to stored cumulated values of
-	# an option.
-	# @param an option name
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	local ident=$(argsparse_option_to_identifier "$option")
 	printf "cumulated_values_%s" "$ident"
 }
-
 
 ## @fn argsparse_set_cumulative_option()
 ## @brief "cumulative" property specific option-setting hook.
@@ -424,7 +431,6 @@ argsparse_set_cumulative_option() {
 ## @details Will add @a value to the set of values of @a option. If @a
 ## value is already present, then it is not re-added.
 argsparse_set_cumulativeset_option() {
-	# The default action to take for cumulativeset options.
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
@@ -504,7 +510,6 @@ argsparse_set_option() {
 ## @fn argsparse_usage_short()
 ## @details Generate and print the "short" description of the program
 ## usage.
-## @return 0
 argsparse_usage_short() {
 	# This function generates and prints the short description of the
 	# program usage.
@@ -545,8 +550,9 @@ argsparse_usage_short() {
 }
 
 ## @fn argsparse_usage_long()
-## This function generates and prints the long description of the
-## program usage.
+## This function generates and prints the "long" description of the
+## program usage. Prints all option along with the description
+## provided to argsparse_use_option().
 argsparse_usage_long() {
 	local long short sep format array aliases
 	local q=\' bol='\t\t  '
@@ -611,7 +617,6 @@ argsparse_usage_long() {
 ## @details Will print both a rather-short and a quite long
 ## description of the program and its options. Just provided to be
 ## wrapped in your own usage().
-## @return 0
 argsparse_usage() {
 	# There's still a lot of room for improvement here.
 	argsparse_usage_short
@@ -1048,8 +1053,8 @@ __argsparse_parse_options_no_usage() {
 ## @var AssociativeArray program_options
 ## @brief Options values.
 ## @details
-## After argsparse_parse_options(), contains (if no hook is set for
-## "optionname")
+## After argsparse_parse_options(), it will contain (if no hook is set
+## for "optionname")
 ## @li "optionname" -> "value", if "optionname" accepts a value.
 ## @li "optionname" -> "how many times the option has been detected on
 ## the command line", else.
@@ -1058,7 +1063,7 @@ declare -A program_options=()
 ## @var Array program_params
 ## @brief Positionnal parameters of the script
 ## @details
-## After argsparse_parse_options() will contains all non-option
+## After argsparse_parse_options(), it will contain all non-option
 ## parameters. (Typically, everything found after the '--')
 declare -a program_params=()
 
