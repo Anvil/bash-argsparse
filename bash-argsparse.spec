@@ -1,6 +1,6 @@
 Summary: An high level argument parsing library for bash.
 Name: bash-argsparse
-Version: 1.5
+Version: 1.6
 Release: 0%{?dist}
 License: WTFPLv2
 URL: https://github.com/Anvil/bash-argsparse
@@ -42,6 +42,10 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
 
 %changelog
+* Mon Jan 13 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-0
+- Version 1.6
+- Added doxygen documentation
+
 * Thu Mar 21 2013 Dams <bash-argsparse[AT]livna.org> - 1.5-0
 - Version 1.5
 - Updated Requires
