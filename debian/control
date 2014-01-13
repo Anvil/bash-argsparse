@@ -2,7 +2,7 @@ Source: bash-argsparse
 Section: libs
 Priority: optional
 Maintainer: Damien Nade <bash-argsparse@livna.org>
-Build-Depends: debhelper (>= 7.0.50)
+Build-Depends: debhelper (>= 7.0.50), doxygen
 
 Package: bash-argsparse
 Architecture: all
