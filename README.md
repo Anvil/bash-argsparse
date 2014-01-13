@@ -37,7 +37,7 @@ The argsparse library offers to script developpers the following features:
 A basic argsparse run requires no external commands except the
 quite-common "getopt" command. Some argsparse-built-in type checkings
 may require some other (like "host" and "getent") but you do not have
-to use those type.
+to use those types.
 
 Argsparse relies on a lot of bash built-in commands ("printf", "[",
 "read", ...) and internal features such as arrays, associative arrays,
