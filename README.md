@@ -79,7 +79,6 @@ Known limitations (or bugs)
 
 * You cannot have a short option without a long option.
 * Too few verifications about property values are made.
-* An option can conflict another ( '-' vs '_' ).
 * Compliance against some bash settings like nounset and errexit has
   not (yet) been proved, but is wished.
 * Compliance with Non-bind versions of the "host" command has not been

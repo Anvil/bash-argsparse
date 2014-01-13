@@ -68,9 +68,6 @@
 ## What is referred later as "option" or "option name" (or even "long
 ## option name") is the optstring without the ':' and '=' characters.
 ##
-## @todo There are some currently unhandled conflicts between foo-bar
-## and foo_bar options.
-##
 ###
 ##
 ## @par Options may have properties.
