@@ -689,7 +689,7 @@ __argsparse_check_requires() {
 		do
 			if ! argsparse_is_option_set "$require"
 			then
-				printf >&2 "%s: --%s: requires option %s.\n" \
+				printf >&2 "%s: --%s: requires option --%s.\n" \
 					"$__argsparse_pgm" "$option" "$requires"
 				: $((count++))
 			fi
