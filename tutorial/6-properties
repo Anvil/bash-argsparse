@@ -40,6 +40,10 @@ argsparse_use_option option6 "A 6th option." alias:'option1 option2 option3'
 # is currently no loop detection.
 argsparse_use_option option7 "A 7th option" alias:option6
 
+# You can also create dependencies between options. In this case, if
+# you specify --option8, you cannot omit --option2 nor --option3.
+argsparse_use_option option8 "A 8th option" require:"option2 option3"
+
 # 
 printf -v argsparse_usage_description "%s\n" \
 	"A tutorial script teaching other argsparse option properties." \
