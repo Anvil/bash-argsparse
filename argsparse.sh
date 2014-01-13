@@ -1180,12 +1180,13 @@ _argsparse_optstring_has_short() {
 }
 
 
-## @var __argsparse_tmp_identifiers
+## @var AssociativeArray __argsparse_tmp_identifiers
 ## @private
-## @brief Iternal use
-## @details Used to verify declared options do not conflict. Is unset
-## after argsparse_parse_options().
+## @brief Internal use
 declare -A __argsparse_tmp_identifiers=()
+# Used to verify declared options do not conflict. Is unset after
+# argsparse_parse_options().
+
 
 # @fn _argsparse_check_declaration_conflict()
 # @brief Internal use.
