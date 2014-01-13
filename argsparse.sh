@@ -833,6 +833,7 @@ argsparse_allow_no_argument() {
 ## @param parameters... should be the program arguments.
 ## @return 0 as if no error is encountered during option parsing.
 argsparse_parse_options() {
+	unset __argsparse_tmp_identifiers || :
 	__argsparse_parse_options_no_usage "$@" && return
 	# Something went wrong, invoke usage function, if defined.
 	declare -f usage >/dev/null 2>&1 && usage
@@ -1181,6 +1182,35 @@ _argsparse_optstring_has_short() {
 	return 1
 }
 
+
+## @var __argsparse_tmp_identifiers
+## @private
+## @brief Iternal use
+## @details Used to verify declared options do not conflict. Is unset
+## after argsparse_parse_options().
+declare -A __argsparse_tmp_identifiers=()
+
+# @fn _argsparse_check_declaration_conflict()
+# @brief Internal use.
+# @details Check if an option conflicts with another and, if it does,
+# prints the conflicted option.
+# @param option an option name
+# @return True if option *does* conflict with a previously declared
+# option.
+__argsparse_check_declaration_conflict() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	local identifier=$(argsparse_option_to_identifier "$option")
+	local -a identifiers=("${!__argsparse_tmp_identifiers[@]}")
+	local conflict
+	if conflict=$(__argsparse_index_of "$identifier" "${identifiers[@]}")
+	then
+		printf %s "${__argsparse_tmp_identifiers[${identifiers[$conflict]}]}"
+		return 1
+	fi
+	__argsparse_tmp_identifiers["$identifier"]=$option
+}
+
 ## @fn argsparse_use_option()
 ## @brief Define a @b new option.
 ## @param optstring an optstring.
@@ -1201,13 +1231,18 @@ _argsparse_optstring_has_short() {
 ##   @li The @b last non-keyword parameter will be considered as the
 ##     default value for the option. All other parameters and
 ##     values will be ignored. - might be broken / obsolete and broken
-## @return 0 if no error is encountered.
+## @retval 0 if no error is encountered.
+## @retval 2 if option name is bad (a message will be printed)
+## @retval 3 if option name conflicts with another option (a message
+## will be printed.
+## @retval 4 if a wrong property name is provided. (a message will be
+## printed)
 argsparse_use_option() {
 	[[ $# -ge 2 ]] || return 1
 	local optstring=$1
 	local description=$2
 	shift 2
-	local long short
+	local long short conflict
 	# configure short option.
 	if short=$(_argsparse_optstring_has_short "$optstring")
 	then
@@ -1226,7 +1261,14 @@ argsparse_use_option() {
 	if [[ "$long" = *[!-0-9a-zA-Z_]* ]]
 	then
 		printf >&2 "%s: %s: bad option name.\n" "$__argsparse_pgm" "$long"
-		return 1
+		return 2
+	fi
+
+	if conflict=$(__argsparse_check_declaration_conflict "$long")
+	then
+		printf >&2 "%s: %s: option conflicts with already-declared %s.\n" \
+			"$__argsparse_pgm" "$long" "$conflict"
+		return 3
 	fi
 
 	__argsparse_options_descriptions["$long"]=$description
@@ -1237,7 +1279,7 @@ argsparse_use_option() {
 		if ! argsparse_set_option_property "$1" "$long"
 		then
 			printf >&2 '%s: %s: unknown property.\n' "$__argsparse_pgm" "$1"
-			return 1
+			return 4
 		fi
 		shift
 	done
