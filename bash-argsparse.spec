@@ -7,6 +7,7 @@ URL: https://github.com/Anvil/bash-argsparse
 Source0: http://argsparse.livna.org/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
+BuildRequires: doxygen
 # The interpreter, with its minimal version.
 Requires: bash >= 4.1
 # Argsparse some very few binaries: getopt contained in util-linux,
@@ -26,15 +27,16 @@ will fail at interpreting that code.
 %setup -q
 
 %build
+# Nothing to build, except the documentation.
+doxygen
 
 %install
 mkdir -p $RPM_BUILD_ROOT/%{_bindir}
 install -m 0755 argsparse.sh $RPM_BUILD_ROOT/%{_bindir}
 ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
-
 %files
-%doc tutorial README.md
+%doc tutorial README.md html
 %{_bindir}/argsparse
 %{_bindir}/argsparse.sh
 
