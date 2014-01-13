@@ -671,6 +671,33 @@ __argsparse_is_array_declared() {
 		"declare -"[aA]" $array_name='("* ]]
 }
 
+__argsparse_check_requires() {
+	# @return the number of missing option detected, but this function
+	# actually stops are the first failing *list* of dependencies.
+	local option=$1
+	local requirestring require count=0
+	local -a requires
+	for option in "${!program_options[@]}"
+	do
+		if ! requirestring="$(argsparse_has_option_property "$option" require)"
+		then
+			# No requirement for this option.
+			continue
+		fi
+		read -a requires <<<"$requirestring"
+		for require in "${requires[@]}"
+		do
+			if ! argsparse_is_option_set "$require"
+			then
+				printf >&2 "%s: --%s: requires option %s.\n" \
+					"$__argsparse_pgm" "$option" "$requires"
+				: $((count++))
+			fi
+		done
+		[[ "$count" -ne 0 ]] && return "$count"
+	done
+}
+
 __argsparse_check_missing_options() {
 	# @return 0 if all mandatory options have a value in
 	# program_options associative array.
@@ -994,7 +1021,8 @@ __argsparse_parse_options_no_usage() {
 			program_params=( "$@" )
 			# If some mandatory option have been omited by the user, then
 			# print some error, and invoke usage.
-			__argsparse_check_missing_options
+			# Also checks requires chains.
+			__argsparse_check_missing_options && __argsparse_check_requires
 			return
 		fi
 		# If a short option was given, then we first convert it to its
