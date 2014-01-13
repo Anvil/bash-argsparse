@@ -1236,9 +1236,10 @@ __argsparse_check_declaration_conflict() {
 	if conflict=$(__argsparse_index_of "$identifier" "${identifiers[@]}")
 	then
 		printf %s "${__argsparse_tmp_identifiers[${identifiers[$conflict]}]}"
-		return 1
+		return 0
 	fi
 	__argsparse_tmp_identifiers["$identifier"]=$option
+	return 1
 }
 
 ## @fn argsparse_use_option()
