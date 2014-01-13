@@ -154,6 +154,14 @@
 ##   expand to value1, and "${cumulated_values_opt1[1]}" will expand to
 ##   value2. There would be no "${cumulated_values_opt1[2]}" value.
 ##
+## @li "require:<option> <option>" @n
+##   Creates a dependency between options. if you declare an option with:
+##   @code
+##   argsparse_use_option opt1 "something" require:"opt2 opt3"
+##   @endcode
+##   argsparse_parse_options() would return with an error if "--opt1"
+##   is given on the commande line without "--opt2" or without "--opt3".
+##
 ## @par
 ## You can test if an option has a property using the
 ## argsparse_has_option_property() function.
@@ -169,23 +177,19 @@
 ##
 ## @li program_options, an associative array. For each record of the
 ##   array:
-##   <ul>
-##   <li> The key is the long option name.
-##   <li> And about values:
-##    <ul>
-##    <li> If option doesn't expect a value on the command line, the
+##   - The key is the long option name.
+##   - And about values:
+##     - If option doesn't expect a value on the command line, the
 ##       value represents how many times the option has been
 ##       found on the command line
 ##
-##    <li> If option does require a value, the array record value is the
+##     - If option does require a value, the array record value is the
 ##       value of the last occurence of the option found on the command
 ##       line.
-##
-##    <li> If option is cumulative (or cumulativeset), the array record
-##       value is the number of values passed by the user.
-##    </ul>
-##   </ul>
-##
+##     .
+##   - If option is cumulative (or cumulativeset), the array record
+##     value is the number of values passed by the user.
+##   .
 ## After argsparse_parse_options() invokation, you can check if an
 ## option have was on the command line (or not) using the
 ## argsparse_is_option_set() function. @n
@@ -1094,7 +1098,7 @@ argsparse_set_option_property() {
 			cumulative|cumulativeset)
 				argsparse_set_option_property value "$option"
 				;;&
-			type:*|exclude:*|alias:*)
+			type:*|exclude:*|alias:*|require:*)
 				if [[ "$property" =~ ^.*:(.+)$ ]]
 				then
 					# If property has a value, check its format, we
