@@ -204,7 +204,7 @@ for type in "${!types[@]}"
 do
 	(
 		argsparse_use_option option: "" "type:$type"
-		# Left unquoted on purple
+		# Left unquoted on purpose. There's no funny chars in this array.
 		i=1
 		for value in ${types[$type]}
 		do
@@ -237,7 +237,7 @@ for type in "${!bad_types[@]}"
 do
 	(
 		argsparse_use_option option: "" "type:$type"
-		# Left unquoted on purple
+		# Left unquoted on purpose. (again)
 		i=1
 		for value in ${bad_types[$type]}
 		do
