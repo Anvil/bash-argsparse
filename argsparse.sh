@@ -558,7 +558,7 @@ argsparse_usage_short() {
 ## program usage. Prints all option along with the description
 ## provided to argsparse_use_option().
 argsparse_usage_long() {
-	local long short sep format array aliases
+	local long short sep format array property propstring
 	local q=\' bol='\t\t  '
 	local -A long_to_short=()
 	local -a values
@@ -606,12 +606,17 @@ argsparse_usage_long() {
 			printf "${bol}Acceptable values: %s\n" \
 				"$(__argsparse_join_array " " "${values[@]}")"
 		fi
-		if aliases=$(argsparse_has_option_property "$long" alias)
-		then
-			read -a values <<<"$aliases"
-			values=( "${values[@]/#/--}" )
-			printf "${bol}Same as: %s\n" "${values[*]}"
-		fi
+		local -A properties=([require]="Requires" [alias]="Same as")
+		for property in "${!properties[@]}"
+		do
+			if propstring=$(argsparse_has_option_property "$long" "$property")
+			then
+				read -a values <<<"$propstring"
+				values=( "${values[@]/#/--}" )
+				printf "${bol}%s: %s\n" \
+					"${properties[$property]}" "${values[*]}"
+			fi
+		done
 	done
 }
 
