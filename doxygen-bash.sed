@@ -1,3 +1,4 @@
+#!/bin/sed -nf
 /^## \+@fn/{
     :step
     /@param [^ ]\+ .*$/{
@@ -14,4 +15,6 @@
 }
 s/^declare -a \([^=]\+\).*$/Array \1;/p
 s/^declare -A \([^=]\+\).*$/AssociativeArray \1;/p
+s/^declare -r \([^=]\+\)=\(.*\)$/ReadOnly String \1 = \2;/p
+s/^declare -i \([^=]\+\)/Integer \1;/p
 s/^## /\/\/! /p

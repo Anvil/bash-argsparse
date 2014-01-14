@@ -35,7 +35,7 @@
 ## To replace the option-parsing and usage-describing functions
 ## commonly rewritten in all scripts.
 ##
-## @par
+## @note
 ## This library is implemented for bash version 4. Prior versions of
 ## bash will fail at interpreting that code.
 #
@@ -259,7 +259,10 @@ then
 	exit 1
 fi
 
-ARGSPARSE_VERSION=1.5
+## @var ARGSPARSE_VERSION
+## @brief argsparse version number
+## @showinitializer
+declare -r ARGSPARSE_VERSION=1.5
 
 # Enable required features
 shopt -s extglob
