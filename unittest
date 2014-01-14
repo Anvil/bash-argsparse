@@ -7,6 +7,16 @@ PATH="$PATH:."
 
 . argsparse.sh
 
+shopt -s extdebug
+errors=0
+
+err_trap() {
+	: $((errors+=1))
+	return 1
+}
+
+trap err_trap ERR
+
 print_exit_status() {
     # Prints [OK] at the end of the screen of first argument is 0,
     # else [FAILURE].
@@ -104,7 +114,7 @@ parse_option_wrapper() {
 		$INNERTEST
 	) >/dev/null 2>&1
 	$TEST
-	print_exit_status
+	print_exit_status || exit
 }
 
 (
@@ -120,18 +130,27 @@ parse_option_wrapper() {
 	parse_option_wrapper "= in optstring" -s
 )
 
-unittest_check_1() { [[ ${program_options[value]} = 1 ]] ; }
+value_check_test() {
+	[[ ${program_options[$value_check_option]} = $value_check_value ]]
+}
+
+value_check() {
+	local value_check_option=$1
+	local value_check_value=$2
+	shift 2
+	INNERTEST=value_check_test parse_option_wrapper "$@"
+}
 
 (
 	argsparse_use_option value ""
 	argsparse_set_option_property value value
 	TEST=failure parse_option_wrapper "if value property expects value" --value
-	INNERTEST=unittest_check_1 parse_option_wrapper "if value is correctly detected" --value 1
+	value_check value 1 "if value is correctly detected" --value 1
 )
 
 (
 	argsparse_use_option value: ""
-	INNERTEST=unittest_check_1 parse_option_wrapper "if value is correctly detected with optstring" --value 1
+	value_check value 1 "if value is correctly detected with optstring" --value 1
 	TEST=failure parse_option_wrapper "if value property expects value if set with optstring" --value
 )	
 
@@ -146,3 +165,99 @@ unittest_check_1() { [[ ${program_options[value]} = 1 ]] ; }
 	TEST=failure parse_option_wrapper "if missing mandatory options trigger error (3)" --option1 --option3
 	parse_option_wrapper "if missing mandatory options trigger error (4)" --option3 --option2
 )
+
+(
+	argsparse_use_option option1 ""
+	argsparse_use_option option2 "" alias:option1
+	value_check option1 1 "simple alias" --option1
+	argsparse_use_option option3 "" alias:option2
+	value_check option1 1 "recursive alias" --option1
+)
+
+dir=$(mktemp -d)
+fifo="$dir/fifo"
+file=$(mktemp --tmpdir="$dir")
+mkfifo "$fifo"
+declare -A types=(
+	[link]="$dir/link1 $dir/link2"
+	[file]="$file ${types[link]}"
+	[directory]=". .. $dir $dir/linkdir"
+	[pipe]="$fifo"
+	[terminal]=0
+	[socket]=/dev/log
+	[link]="$dir/link1 $dir/link2"
+	[char]="c . 0 @"
+	[unsignedint]=123
+	[int]="1 123 0 -1 -938945349"
+	[hexa]="0x123abc 71234 abc"
+	[ipv4]="192.168.40.254 127.0.0.1 1.2.3.4"
+	[ipv6]="2001:7a8:b018::1 ::1 2001:7a8:b018:0:21f:c6ff:fe59:71fd"
+	[host]="livna.org ${types[ipv4]} ${types[ipv6]}"
+	[username]=$(whoami)
+	[group]=$(id -gn)
+	[port]="ssh 80"
+	[portnumber]=1234
+	[hostname]="livna.org localhost"
+)
+(cd "$dir" && ln -s "$file" link1 && ln -s asdf link2 && ln -s . linkdir)
+for type in "${!types[@]}"
+do
+	(
+		argsparse_use_option option: "" "type:$type"
+		# Left unquoted on purple
+		i=1
+		for value in ${types[$type]}
+		do
+			parse_option_wrapper "type '$type' ($i)" --option "$value"
+			: $((i++))
+		done
+	)
+done
+
+declare -A bad_types=(
+	[file]=". .. $dir $fifo"
+	[directory]="${types[file]} $fifo $dir/link1"
+	[pipe]="${types[file]} ${types[dir]}"
+	[socket]="${types[file]} $fifo $dir/link1"
+	[link]="${types[file]} $fifo"
+	[char]="12 abc"
+	[unsignedint]="-1 -2234958 abc"
+	[int]="a b casdf"
+	[ipv4]="${types[ipv6]}"
+	[ipv6]="${types[ipv4]}"
+	[host]="livna.org1"
+	[username]="asdkfjasdkfanfk1234"
+	[group]="asdkfjasdkfanfk1234"
+	[port]="12345678 foobar"
+	[portnumber]=12345678
+	[hostname]="livna.org1 google.com1"
+)
+
+for type in "${!bad_types[@]}"
+do
+	(
+		argsparse_use_option option: "" "type:$type"
+		# Left unquoted on purple
+		i=1
+		for value in ${bad_types[$type]}
+		do
+			TEST=failure parse_option_wrapper "failure with type '$type' ($i)" --option "$value"
+			: $((i++))
+		done
+	)
+done
+
+(
+	argsparse_use_option option: "" "type:terminal"
+	TEST=failure parse_option_wrapper "failure with type 'terminal' (1)" --option 0 </dev/null
+)
+
+rm -Rf "$dir"
+
+if [[ $errors -ne 0 ]]
+then
+	printf "%d error(s) encountered. (See above)\n" "$errors"
+	exit 1
+else
+	exit 0
+fi
