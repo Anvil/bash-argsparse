@@ -58,6 +58,7 @@ Content
 * debian: the directory required to build deb packages.
 * Doxyfile: doxygen configuration file.
 * doxygen-bash.sed: a sed script used as an input filter for doxygen.
+* unittest: a test script to validate most of argsparse features.
 
 ### Testing
 
