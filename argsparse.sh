@@ -223,8 +223,8 @@
 ##
 ## @li If a function named "check_value_of_<optionname>" has been
 ##   defined, it will be called with the user-given value as its first
-##   positionnal parameter. If check_value_of_optionname returns with
-##   non-zero status, then parse_option immediately returns with
+##   positionnal parameter. If check_value_of_<optionname> returns
+##   with non-zero status, then parse_option immediately returns with
 ##   non-zero status, triggering the 'usage' function.
 ##
 ## @par
@@ -388,7 +388,7 @@ argsparse_set_option_without_value() {
 
 ## @fn argsparse_set_option_with_value()
 ## @brief "value" property specific option-setting hook.
-## @param option an option name
+## @param option an option name.
 ## @param value the value put on command line for given option.
 argsparse_set_option_with_value() {
 	[[ $# -eq 2 ]] || return 1
@@ -398,7 +398,7 @@ argsparse_set_option_with_value() {
 }
 
 # @fn __argsparse_get_cumulative_array_name()
-# @param option an option name
+# @param option an option name.
 # @brief Print the name of the array used for "cumulative" and
 # "cumulativeset" options.
 # @details For "option-name" usually prints
@@ -413,7 +413,7 @@ __argsparse_get_cumulative_array_name() {
 ## @fn argsparse_set_cumulative_option()
 ## @brief "cumulative" property specific option-setting hook.
 ## @details Default action to take for cumulative options.
-## @param option an option name
+## @param option an option name.
 ## @param value the value put on command line for given option.
 argsparse_set_cumulative_option() {
 	[[ $# -eq 2 ]] || return 1
@@ -447,7 +447,7 @@ argsparse_set_cumulativeset_option() {
 }
 
 ## @fn argsparse_set_alias()
-## @param option an option name
+## @param option an option name.
 ## @brief "alias" property specific option-setting hook.
 ## @details When an option is an alias for other option(s), then set
 ## the aliases options.
@@ -660,7 +660,7 @@ set_option_help() {
 __argsparse_values_array_identifier() {
 	# Prints the name of the array which will contain all the values
 	# of an option with the cumulative or cumulativeset property.
-	# @param an option name
+	# @param option an option name.
 	local option=$1
 	local array="option_${option}_values"
 	__argsparse_is_array_declared "$array" || return 1
@@ -815,8 +815,8 @@ __argsparse_parse_options_valuecheck() {
 	# then check against the type.
 	# In the end, check against check_value_of_<option> function, if
 	# it's been defined.
-	# @param an option name
-	# @param a value
+	# @param option an option name
+	# @param value anything
 	# @return 0 if value is correct for given option.
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
@@ -1179,11 +1179,11 @@ argsparse_set_option_property() {
 
 ## @fn argsparse_has_option_property()
 ## @brief Determine if an option has a property.
-## @details Return 0 if property has been set for given option, and
+## @details Return True if property has been set for given option, and
 ## print the property value, if available.
 ## @param option an option name.
 ## @param property a property name.
-## @return 0 if option has given property.
+## @retval 0 if option has given property.
 argsparse_has_option_property() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
@@ -1327,8 +1327,8 @@ argsparse_use_option() {
 
 ## @fn argsparse_option_description()
 ## @brief Prints to stdout the description of given option.
-## @param option an option name
-## @return 0 if given option has been previously declared.
+## @param option an option name.
+## @retval 0 if given option has been previously declared.
 argsparse_option_description() {
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
@@ -1338,8 +1338,8 @@ argsparse_option_description() {
 
 ## @fn argsparse_is_option_set()
 ## @brief Return True if an option has been set on the command line.
-## @param option an option name
-## @return 0 if given option has been set on the command line.
+## @param option an option name.
+## @retval 0 if given option has been set on the command line.
 argsparse_is_option_set() {
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
@@ -1373,7 +1373,7 @@ __max_length() {
 ## this function will print options and their values.
 ## @param option... A list of option name. If omitted all options
 ## will be displayed.
-## @return 0.
+## @retval 0
 argsparse_report() {
 	local option array_name value
 	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
