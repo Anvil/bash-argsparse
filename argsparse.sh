@@ -298,7 +298,7 @@ argsparse_minimum_parameters() {
 }
 
 # "Should be enough for everyone". At least as a default.
-__argsparse_maximum_parameters=100000
+declare -i __argsparse_maximum_parameters=100000
 
 ## @fn argsparse_maximum_parameters()
 ## @brief Set the maximum number of non-option parameters expected on
@@ -378,7 +378,7 @@ argsparse_option_to_identifier() {
 
 ## @fn argsparse_set_option_without_value()
 ## @brief The option-setting hook for options not accepting values.
-## @param option a long option name
+## @param option an option name.
 ## @retval 0
 argsparse_set_option_without_value() {
 	[[ $# -eq 1 ]] || return 1
@@ -397,13 +397,13 @@ argsparse_set_option_with_value() {
 	program_options["$option"]=$value
 }
 
-# @fn __argsparse_get_cumulative_array_name()
-# @param option an option name.
-# @brief Print the name of the array used for "cumulative" and
-# "cumulativeset" options.
-# @details For "option-name" usually prints
-# "cumulated_values_option_name".
-__argsparse_get_cumulative_array_name() {
+## @fn argsparse_get_cumulative_array_name()
+## @param option an option name.
+## @brief Print the name of the array used for "cumulative" and
+## "cumulativeset" options.
+## @details For "option-name" usually prints
+## "cumulated_values_option_name".
+argsparse_get_cumulative_array_name() {
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
 	local ident=$(argsparse_option_to_identifier "$option")
@@ -419,7 +419,7 @@ argsparse_set_cumulative_option() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
-	local array="$(__argsparse_get_cumulative_array_name "$option")"
+	local array="$(argsparse_get_cumulative_array_name "$option")"
 	local size temp="$array[@]"
 	local -a copy
 	copy=( "${!temp}" )
@@ -429,8 +429,8 @@ argsparse_set_cumulative_option() {
 }
 
 ## @fn argsparse_set_cumulativeset_option()
-## @param option a option name
-## @param value
+## @param option an option name.
+## @param value a new value for the option.
 ## @brief "cumulativeset" property specific option-setting hook.
 ## @details Will add @a value to the set of values of @a option. If @a
 ## value is already present, then it is not re-added.
@@ -438,7 +438,7 @@ argsparse_set_cumulativeset_option() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
-	local array="$(__argsparse_get_cumulative_array_name "$option")[@]"
+	local array="$(argsparse_get_cumulative_array_name "$option")[@]"
 	if ! __argsparse_index_of "$value" "${!array}" >/dev/null
 	then
 		# The value is not already in the array, so add it.
@@ -554,8 +554,8 @@ argsparse_usage_short() {
 }
 
 ## @fn argsparse_usage_long()
-## This function generates and prints the "long" description of the
-## program usage. Prints all option along with the description
+## @details This function generates and prints the "long" description
+## of the program usage. Prints all option along with the description
 ## provided to argsparse_use_option().
 argsparse_usage_long() {
 	local long short sep format array property propstring
@@ -667,11 +667,9 @@ __argsparse_values_array_identifier() {
 	printf %s "$array[@]"
 }
 
-#
-
 __argsparse_is_array_declared() {
 	# @param an array name.
-	# @return 0 if an array has been already declared by the name of
+	# @retval 0 if an array has been already declared by the name of
 	# the parameter.
 	[[ $# -eq 1 ]] || return 1
 	local array_name=$1
@@ -708,7 +706,7 @@ __argsparse_check_requires() {
 }
 
 __argsparse_check_missing_options() {
-	# @return 0 if all mandatory options have a value in
+	# @retval 0 if all mandatory options have a value in
 	# program_options associative array.
 	local option count=0
 	for option in "${!__argsparse_options_descriptions[@]}"
@@ -726,9 +724,9 @@ __argsparse_check_missing_options() {
 ## @fn argsparse_check_option_type()
 ## @brief Check if a value matches a given type.
 ## @details Return True if @a value is of type @a type.
-## @param type a type. A type name is case insensitive.
-## @param value a value to check
-## @returns 0 if the value matches the given type format.
+## @param type A case-insensitive type name.
+## @param value a value to check.
+## @retval 0 if the value matches the given type format.
 argsparse_check_option_type() {
 	[[ $# -eq 2 ]] || return 1
 	local option_type=${1,,}
@@ -815,9 +813,9 @@ __argsparse_parse_options_valuecheck() {
 	# then check against the type.
 	# In the end, check against check_value_of_<option> function, if
 	# it's been defined.
-	# @param option an option name
-	# @param value anything
-	# @return 0 if value is correct for given option.
+	# @param option an option name.
+	# @param value anything.
+	# @retval 0 if value is correct for given option.
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
@@ -1106,14 +1104,6 @@ declare -A program_options=()
 ## parameters. (Typically, everything found after the '--')
 declare -a program_params=()
 
-argsparse_reset() {
-	# Reset important global arrays.
-	program_options=()
-	program_params=()
-	__argsparse_short_options=()
-}
-
-
 ## @var AssociativeArray __argsparse_option_properties
 ## @private
 ## @brief Internal use only.
@@ -1393,7 +1383,7 @@ argsparse_report() {
 			printf "yes (%s" "${program_options[$option]}"
 			if argsparse_has_option_property "$option" cumulative
 			then
-				array_name="$(__argsparse_get_cumulative_array_name "$option")[@]"
+				array_name="$(argsparse_get_cumulative_array_name "$option")[@]"
 				array=( "${!array_name}" )
 				printf ' time(s):'
 				for value in "${array[@]}"
