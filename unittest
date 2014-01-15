@@ -278,8 +278,17 @@ done
 	argsparse_use_option option: "" "type:terminal"
 	TEST=failure parse_option_wrapper "failure with type 'terminal' (1)" --option 0 </dev/null
 )
-
 rm -Rf "$dir"
+
+(
+	check_option_type_unittest() {
+		local value=$1
+		[[ $value = 1 ]]
+	}
+	argsparse_use_option option: "" type:unittest
+	parse_option_wrapper "custom type (1)" --option 1
+	TEST=failure parse_option_wrapper "custom type (2)" --option asdf
+)
 
 if [[ $errors -ne 0 ]]
 then
