@@ -277,11 +277,10 @@ shopt -s extglob
 declare -A __argsparse_options_descriptions=()
 
 # The program name
-__argsparse_pgm=${0##*/}
-
+declare -r __argsparse_pgm=${0##*/}
 
 # The default minimum parameters requirement for command line.
-__argsparse_minimum_parameters=0
+declare -i __argsparse_minimum_parameters=0
 
 ## @fn argsparse_minimum_parameters()
 ## @brief Set the minimum number of non-option parameters expected on
@@ -1192,14 +1191,14 @@ argsparse_has_option_property() {
 ## @brief Internal use only.
 declare -A __argsparse_short_options=()
 
-# @fn _argsparse_optstring_has_short()
+# @fn __argsparse_optstring_has_short()
 # @brief Internal use.
 # @details Prints the short option string suitable for getopt command
 # line.
 # @param optstring an optstring
 # @return non-zero if given optstring doesnt have any short option
 # equivalent.
-_argsparse_optstring_has_short() {
+__argsparse_optstring_has_short() {
 	[[ $# -eq 1 ]] || return 1
 	local optstring=$1
 	if [[ "$optstring" =~ .*=(.).* ]]
@@ -1274,7 +1273,7 @@ argsparse_use_option() {
 	shift 2
 	local long short conflict
 	# configure short option.
-	if short=$(_argsparse_optstring_has_short "$optstring")
+	if short=$(__argsparse_optstring_has_short "$optstring")
 	then
 		set -- "short:$short" "$@"
 		optstring=${optstring/=/}
