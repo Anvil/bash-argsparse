@@ -704,6 +704,7 @@ __argsparse_check_requires() {
 		done
 		[[ "$count" -ne 0 ]] && return "$count"
 	done
+	return 0
 }
 
 __argsparse_check_missing_options() {
