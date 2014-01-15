@@ -244,6 +244,11 @@
 ## of 1) if called with a wrong number of parameters, and return with
 ## 0 if everything went fine.
 #
+## @defgroup ArgsparseUsage Calling program usage description message.
+## @defgroup ArgsparseOptionSetter Setting options values.
+## @defgroup ArgsparseProperty Options properties handling.
+## @defgroup ArgsparseParameter Non-optional positionnal parameters.
+
 # We're not compatible with older bash versions.
 if [[ "$BASH_VERSINFO" -lt 4 ]]
 then
@@ -282,6 +287,7 @@ declare -r argsparse_pgm=${0##*/}
 
 ## @brief Internal use only.
 ## @details The default minimum parameters requirement for command line.
+## @ingroup ArgsparseParameter
 declare -i __argsparse_minimum_parameters=0
 
 ## @fn argsparse_minimum_parameters()
@@ -291,6 +297,7 @@ declare -i __argsparse_minimum_parameters=0
 ## @retval 0 if there is an unsigned integer is provided and is the
 ## single parameter of this function.
 ## @retval 1 in other cases.
+## @ingroup ArgsparseParameter
 argsparse_minimum_parameters() {
 	[[ $# -eq 1 ]] || return 1
 	local min=$1
@@ -301,6 +308,7 @@ argsparse_minimum_parameters() {
 ## @brief Internal use only.
 ## @details The default maximum parameters requirement for command
 ## line.  "Should be enough for everyone".
+## @ingroup ArgsparseParameter
 declare -i __argsparse_maximum_parameters=100000
 
 ## @fn argsparse_maximum_parameters()
@@ -310,6 +318,7 @@ declare -i __argsparse_maximum_parameters=100000
 ## @retval 0 if there is an unsigned integer is provided and is the
 ## single parameter of this function.
 ## @retval 1 in other cases.
+## @ingroup ArgsparseParameter
 argsparse_maximum_parameters() {
 	[[ $# -eq 1 ]] || return 1
 	local max=$1
@@ -383,6 +392,7 @@ argsparse_option_to_identifier() {
 ## @brief The option-setting hook for options not accepting values.
 ## @param option an option name.
 ## @retval 0
+## @ingroup ArgsparseOptionSetter
 argsparse_set_option_without_value() {
 	[[ $# -eq 1 ]] || return 1
 	local option=$1
@@ -393,6 +403,7 @@ argsparse_set_option_without_value() {
 ## @brief "value" property specific option-setting hook.
 ## @param option an option name.
 ## @param value the value put on command line for given option.
+## @ingroup ArgsparseOptionSetter
 argsparse_set_option_with_value() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
@@ -418,6 +429,7 @@ argsparse_get_cumulative_array_name() {
 ## @details Default action to take for cumulative options.
 ## @param option an option name.
 ## @param value the value put on command line for given option.
+## @ingroup ArgsparseOptionSetter
 argsparse_set_cumulative_option() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
@@ -437,6 +449,7 @@ argsparse_set_cumulative_option() {
 ## @brief "cumulativeset" property specific option-setting hook.
 ## @details Will add @a value to the set of values of @a option. If @a
 ## value is already present, then it is not re-added.
+## @ingroup ArgsparseOptionSetter
 argsparse_set_cumulativeset_option() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
@@ -454,6 +467,7 @@ argsparse_set_cumulativeset_option() {
 ## @brief "alias" property specific option-setting hook.
 ## @details When an option is an alias for other option(s), then set
 ## the aliases options.
+## @ingroup ArgsparseOptionSetter
 argsparse_set_alias() {
 	# This option will set all options aliased by another.
 	[[ $# -eq 1 ]] || return 1
@@ -482,6 +496,7 @@ argsparse_set_alias() {
 ## whenever an option is being and no custom setting hook is define
 ## for this option. Depending of the properties of the option a more
 ## specific setting hook will be called.
+## @ingroup ArgsparseOptionSetter
 argsparse_set_option() {
 	[[ $# -eq 2 || $# -eq 1 ]] || return 1
 	local option=$1
@@ -517,6 +532,7 @@ argsparse_set_option() {
 ## @fn argsparse_usage_short()
 ## @details Generate and print the "short" description of the program
 ## usage.
+## @ingroup ArgsparseUsage
 argsparse_usage_short() {
 	# This function generates and prints the short description of the
 	# program usage.
@@ -558,8 +574,9 @@ argsparse_usage_short() {
 
 ## @fn argsparse_usage_long()
 ## @details This function generates and prints the "long" description
-## of the program usage. Prints all option along with the description
-## provided to argsparse_use_option().
+## of the program usage. Print all options along with their
+## descriptions provided to argsparse_use_option().
+## @ingroup ArgsparseUsage
 argsparse_usage_long() {
 	local long short sep format array property propstring
 	local q=\' bol='\t\t  '
@@ -623,12 +640,20 @@ argsparse_usage_long() {
 	done
 }
 
+## @var String argsparse_usage_description
+## @brief Usage description additionnal string.
+## @details The content of this variable will be appended to the
+## argsparse_usage() output.
+## @ingroup ArgsparseUsage
+declare argsparse_usage_description
+
 ## @fn argsparse_usage()
 ## @brief A generic help message generated from the options and their
 ## descriptions.
 ## @details Will print both a rather-short and a quite long
 ## description of the program and its options. Just provided to be
 ## wrapped in your own usage().
+## @ingroup ArgsparseUsage
 argsparse_usage() {
 	# There's still a lot of room for improvement here.
 	argsparse_usage_short
@@ -642,10 +667,11 @@ argsparse_usage() {
 ## @fn usage()
 ## @brief Default usage function.
 ## @details The default usage function. By default, it will be called
-## by argaparse_parse_options on error or if --help option provided by
-## user on the command line. It can easily be overwritten if it doesnt
+## by argsparse_parse_options() on error or if --help option provided by
+## user on the command line. It can easily be overwritten if it does not
 ## suits your needs.
 ## @return This function makes an @b exit with value 1
+## @ingroup ArgsparseUsage
 usage() {
 	argsparse_usage
 	exit 1
@@ -655,6 +681,7 @@ usage() {
 ## @brief Default trigger for --help option.
 ## @details will actually only call "usage" function.
 ## @return whatever usage returns.
+## @ingroup ArgsparseUsage
 set_option_help() {
 	# This is the default hook for the --help option.
 	usage
@@ -1110,6 +1137,7 @@ declare -a program_params=()
 ## @var AssociativeArray __argsparse_options_properties
 ## @private
 ## @brief Internal use only.
+## @ingroup ArgsparseProperty
 declare -A __argsparse_options_properties=()
 
 ## @fn argsparse_set_option_property()
@@ -1117,6 +1145,7 @@ declare -A __argsparse_options_properties=()
 ## @param property a property name.
 ## @param option... option names.
 ## @return non-zero if property is not supported.
+## @ingroup ArgsparseProperty
 argsparse_set_option_property() {
 	[[ $# -ge 2 ]] || return 1
 	local property=$1
@@ -1177,6 +1206,7 @@ argsparse_set_option_property() {
 ## @param option an option name.
 ## @param property a property name.
 ## @retval 0 if option has given property.
+## @ingroup ArgsparseProperty
 argsparse_has_option_property() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
