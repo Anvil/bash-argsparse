@@ -276,10 +276,12 @@ shopt -s extglob
 ## @brief Internal use only.
 declare -A __argsparse_options_descriptions=()
 
-# The program name
-declare -r __argsparse_pgm=${0##*/}
+## @brief The name of the program currently using argsparse.
+## @hideinitializer
+declare -r argsparse_pgm=${0##*/}
 
-# The default minimum parameters requirement for command line.
+## @brief Internal use only.
+## @details The default minimum parameters requirement for command line.
 declare -i __argsparse_minimum_parameters=0
 
 ## @fn argsparse_minimum_parameters()
@@ -296,7 +298,9 @@ argsparse_minimum_parameters() {
 	__argsparse_minimum_parameters=$min
 }
 
-# "Should be enough for everyone". At least as a default.
+## @brief Internal use only.
+## @details The default maximum parameters requirement for command
+## line.  "Should be enough for everyone".
 declare -i __argsparse_maximum_parameters=100000
 
 ## @fn argsparse_maximum_parameters()
@@ -518,7 +522,7 @@ argsparse_usage_short() {
 	# program usage.
 	local option values current_line current_option bigger_line
 	local max_length=78
-	current_line=$__argsparse_pgm
+	current_line=$argsparse_pgm
 	for option in "${!__argsparse_options_descriptions[@]}"
 	do
 		if argsparse_has_option_property "$option" hidden
@@ -695,7 +699,7 @@ __argsparse_check_requires() {
 			if ! argsparse_is_option_set "$require"
 			then
 				printf >&2 "%s: --%s: requires option --%s.\n" \
-					"$__argsparse_pgm" "$option" "$require"
+					"$argsparse_pgm" "$option" "$require"
 				: $((count++))
 			fi
 		done
@@ -714,7 +718,7 @@ __argsparse_check_missing_options() {
 		# If option has been given, just iterate.
 		argsparse_is_option_set "$option" && continue
 		printf >&2 "%s: --%s: option is mandatory.\n" \
-			"$__argsparse_pgm" "$option"
+			"$argsparse_pgm" "$option"
 		: $((count++))
 	done
 	[[ "$count" -eq 0 ]]
@@ -797,7 +801,7 @@ argsparse_check_option_type() {
 			then
 				printf >&2 \
 					"%s: %s: type has no validation function. This is a bug.\n" \
-					"$__argsparse_pgm" "$option_type"
+					"$argsparse_pgm" "$option_type"
 				return 2
 			fi
 			"check_option_type_$option_type" "$value"
@@ -989,7 +993,7 @@ __argsparse_parse_options_no_usage() {
 	done
 
 	# 4. Invoke getopt and replace arguments.
-	if ! getopt_temp=$(getopt -s bash -n "$__argsparse_pgm" \
+	if ! getopt_temp=$(getopt -s bash -n "$argsparse_pgm" \
 		--longoptions="$longs" "$shorts" "$@")
 	then
 		# Syntax error on the command implies returning with error.
@@ -1014,13 +1018,13 @@ __argsparse_parse_options_no_usage() {
 			then
 				printf >&2 \
 					"%s: not enough parameters (at least %d expected, %d provided)\n" \
-					"$__argsparse_pgm" "$__argsparse_minimum_parameters" $#
+					"$argsparse_pgm" "$__argsparse_minimum_parameters" $#
 				return 1
 			elif [[ $# -gt "$__argsparse_maximum_parameters" ]]
 			then
 				printf >&2 \
 					"%s: too many parameters (maximum allowed is %d, %d provided)\n" \
-					"$__argsparse_pgm" "$__argsparse_maximum_parameters" $#
+					"$argsparse_pgm" "$__argsparse_maximum_parameters" $#
 				return 1
 			fi
 			# Save program parameters in array
@@ -1043,7 +1047,7 @@ __argsparse_parse_options_no_usage() {
 				# a bug.
 				printf >&2 \
 					"%s: -%s: option doesnt have any matching long option." \
-					"$__argsparse_pgm" "$next_param"
+					"$argsparse_pgm" "$next_param"
 				return 1
 			fi
 			next_param=${__argsparse_short_options[$next_param]}
@@ -1055,7 +1059,7 @@ __argsparse_parse_options_no_usage() {
 		then
 			printf >&2 \
 				"%s: %s: option excluded by other option (%s).\n" \
-				"$__argsparse_pgm" "$next_param" "$exclude"
+				"$argsparse_pgm" "$next_param" "$exclude"
 			return 1
 		fi
 		# Set option value, if there should be one.
@@ -1066,7 +1070,7 @@ __argsparse_parse_options_no_usage() {
 			if ! __argsparse_parse_options_valuecheck "$next_param" "$value"
 			then
 				printf >&2 "%s: %s: Invalid value for option %s.\n" \
-					"$__argsparse_pgm" "$value" "$next_param"
+					"$argsparse_pgm" "$value" "$next_param"
 				return 1
 			fi
 		fi
@@ -1078,7 +1082,7 @@ __argsparse_parse_options_no_usage() {
 		if ! __argsparse_set_option "$next_param" ${value+"$value"}
 		then
 			printf >&2 "%s: %s: Invalid value for %s option.\n" \
-				"$__argsparse_pgm" "$value" "$next_param"
+				"$argsparse_pgm" "$value" "$next_param"
 			return 1
 		fi
 		unset value
@@ -1103,10 +1107,10 @@ declare -A program_options=()
 ## parameters. (Typically, everything found after the '--')
 declare -a program_params=()
 
-## @var AssociativeArray __argsparse_option_properties
+## @var AssociativeArray __argsparse_options_properties
 ## @private
 ## @brief Internal use only.
-declare -A __argsparse_option_properties=()
+declare -A __argsparse_options_properties=()
 
 ## @fn argsparse_set_option_property()
 ## @brief Enable a property to a list of options.
@@ -1132,16 +1136,16 @@ argsparse_set_option_property() {
 					if [[ "${BASH_REMATCH[1]}" = *[*?!,]* ]]
 					then
 						printf >&2 "%s: %s: invalid property value.\n" \
-							"$__argsparse_pgm" "${BASH_REMATCH[1]}"
+							"$argsparse_pgm" "${BASH_REMATCH[1]}"
 						return 1
 					fi
 				fi
 				;&
 			mandatory|hidden|value|cumulative|cumulativeset)
 				# We use the comma as the property character separator
-				# in the __argsparse_option_properties array.
-				p=${__argsparse_option_properties["$option"]}
-				__argsparse_option_properties["$option"]="${p:+$p,}$property"
+				# in the __argsparse_options_properties array.
+				p=${__argsparse_options_properties["$option"]}
+				__argsparse_options_properties["$option"]="${p:+$p,}$property"
 				;;
 			short:?)
 				short=${property#short:}
@@ -1149,7 +1153,7 @@ argsparse_set_option_property() {
 				then
 					printf >&2 \
 						"%s: %s: short option for %s conflicts with already-configured short option for %s.\n" \
-						"$__argsparse_pgm" "$short" "$option" \
+						"$argsparse_pgm" "$short" "$option" \
 						"${__argsparse_short_options[$short]}"
 					return 1
 				fi
@@ -1177,7 +1181,7 @@ argsparse_has_option_property() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local property=$2
-	local p=${__argsparse_option_properties["$option"]}
+	local p=${__argsparse_options_properties["$option"]}
 	if ! [[ "$p" =~ (^|.+,)"$property"(:([^,]+))?($|,.+) ]]
 	then
 		return 1
@@ -1289,14 +1293,14 @@ argsparse_use_option() {
 
 	if [[ "$long" = *[!-0-9a-zA-Z_]* ]]
 	then
-		printf >&2 "%s: %s: bad option name.\n" "$__argsparse_pgm" "$long"
+		printf >&2 "%s: %s: bad option name.\n" "$argsparse_pgm" "$long"
 		return 2
 	fi
 
 	if conflict=$(__argsparse_check_declaration_conflict "$long")
 	then
 		printf >&2 "%s: %s: option conflicts with already-declared %s.\n" \
-			"$__argsparse_pgm" "$long" "$conflict"
+			"$argsparse_pgm" "$long" "$conflict"
 		return 3
 	fi
 
@@ -1307,7 +1311,7 @@ argsparse_use_option() {
 	do
 		if ! argsparse_set_option_property "$1" "$long"
 		then
-			printf >&2 '%s: %s: unknown property.\n' "$__argsparse_pgm" "$1"
+			printf >&2 '%s: %s: unknown property.\n' "$argsparse_pgm" "$1"
 			return 4
 		fi
 		shift
@@ -1400,7 +1404,7 @@ argsparse_report() {
 return 0 >/dev/null 2>&1 ||:
 
 printf "The %s file is not a standalone program. It's a shell library.\n" \
-	"$__argsparse_pgm"
+	"$argsparse_pgm"
 printf "%s\n" \
 	"To use it, you have to load it in your own bash" \
 	"shell scripts using the following line:"
