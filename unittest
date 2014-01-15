@@ -187,6 +187,12 @@ value_check() {
 
 (
 	argsparse_use_option option1 ""
+	argsparse_use_option option2 "" exclude:option1
+	TEST=failure parse_option_wrapper "exclusion" --option2 --option1
+)
+
+(
+	argsparse_use_option option1 ""
 	argsparse_use_option option2 ""
 	argsparse_use_option option3 "" require:"option1 option2"
 	TEST=failure parse_option_wrapper "multiple require (1)" --option3
