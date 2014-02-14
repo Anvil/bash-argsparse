@@ -79,19 +79,19 @@
 ## The currently supported properties are:
 ##
 ## @li "hidden" @n
-## 	An hidden option will not be shown in usage.
+## 	 An hidden option will not be shown in usage.
 ##
 ## @li "mandatory" @n
-##	An option marked as mandatory is required on the command line. If
-##	a mandatory option is omited by the user, usage will be triggered
-##	by argsparse_parse_options().
+##	 An option marked as mandatory is required on the command line. If
+##   a mandatory option is omited by the user, usage will be triggered
+##   by argsparse_parse_options().
 ##
 ## @li "value" @n
 ##   On the command line, the option will require a value.
-##	Same effect if you end your optstring with a ':' char.
+##	 Same effect if you end your optstring with a ':' char.
 ##
 ## @li "default:<defaultvalue>" @n
-##	The default value for the option.
+##	 The default value for the option.
 ##
 ## @li "short:<char>" @n
 ##   The short single-letter equivalent of the option.
@@ -148,7 +148,7 @@
 ##
 ##   e.g: for a script with an opt1 option declared this way:
 ##   @code argsparse_use_option opt1 "some description" cumulativeset @endcode
-##   and invoked with: 
+##   and invoked with:
 ##   @code --opt1 value1 --opt1 value2 --opt1 value1 @endcode
 ##   after argsparse_parse_options(), "${cumulated_values_opt1[0]}" will
 ##   expand to value1, and "${cumulated_values_opt1[1]}" will expand to
@@ -307,7 +307,7 @@ argsparse_minimum_parameters() {
 
 ## @brief Internal use only.
 ## @details The default maximum parameters requirement for command
-## line.  "Should be enough for everyone".
+## line. "Should be enough for everyone".
 ## @ingroup ArgsparseParameter
 declare -i __argsparse_maximum_parameters=100000
 
@@ -534,8 +534,6 @@ argsparse_set_option() {
 ## usage.
 ## @ingroup ArgsparseUsage
 argsparse_usage_short() {
-	# This function generates and prints the short description of the
-	# program usage.
 	local option values current_line current_option bigger_line
 	local max_length=78
 	current_line=$argsparse_pgm
@@ -617,14 +615,20 @@ argsparse_usage_long() {
 		then
 			printf "${bol}Can be repeated.\n"
 		fi
-		if argsparse_has_option_property "$long" value && \
-			array=$(__argsparse_values_array_identifier "$long")
+		if argsparse_has_option_property "$long" value
 		then
-			values=( "${!array}" )
-			values=( "${values[@]/%/$q}" )
-			values=( "${values[@]/#/$q}" )
-			printf "${bol}Acceptable values: %s\n" \
-				"$(__argsparse_join_array " " "${values[@]}")"
+			if array=$(__argsparse_values_array_identifier "$long")
+			then
+				values=( "${!array}" )
+				values=( "${values[@]/%/$q}" )
+				values=( "${values[@]/#/$q}" )
+				printf "${bol}Acceptable values: %s\n" \
+					"$(__argsparse_join_array " " "${values[@]}")"
+			fi
+			if __argsparse_index_of "$long" "${!program_options[@]}"
+			then
+				printf "${bol}Default: %s.\n" "${program_options[$long]}"
+			fi
 		fi
 		local -A properties=([require]="Requires" [alias]="Same as")
 		for property in "${!properties[@]}"
@@ -1369,9 +1373,6 @@ argsparse_is_option_set() {
 	[[ -n "${program_options[$option]+yes}" ]]
 }
 
-# We do define a default --help option.
-argsparse_use_option "=help" "Show this help message"
-
 
 # @private
 # @fn __max_length()
@@ -1430,6 +1431,12 @@ argsparse_report() {
 		fi
 	done
 }
+
+# "Main" stuff.
+
+
+# We do define a default --help option.
+argsparse_use_option "=help" "Show this help message"
 
 return 0 >/dev/null 2>&1 ||:
 
