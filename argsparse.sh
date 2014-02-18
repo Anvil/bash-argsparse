@@ -1402,6 +1402,14 @@ argsparse_report() {
 	local option array_name value
 	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
 	local -a array options
+
+	if __argsparse_is_array_declared __argsparse_tmp_identifiers
+	then
+		# The test is a bit hacky, but it avoids implementing another
+		# mechanism.
+		printf "argsparse_parse_option was not ran yet.\n"
+	fi
+
 	if [[ $# -eq 0 ]]
 	then
 		options=( "${!__argsparse_options_descriptions[@]}" )
