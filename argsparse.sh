@@ -426,7 +426,9 @@ argsparse_get_cumulative_array_name() {
 
 ## @fn argsparse_set_cumulative_option()
 ## @brief "cumulative" property specific option-setting hook.
-## @details Default action to take for cumulative options.
+## @details Default action to take for cumulative options. Store @a
+## value into an array whose name is generated using
+## argsparse_get_cumulative_array_name().
 ## @param option an option name.
 ## @param value the value put on command line for given option.
 ## @ingroup ArgsparseOptionSetter
@@ -447,8 +449,9 @@ argsparse_set_cumulative_option() {
 ## @param option an option name.
 ## @param value a new value for the option.
 ## @brief "cumulativeset" property specific option-setting hook.
-## @details Will add @a value to the set of values of @a option. If @a
-## value is already present, then it is not re-added.
+## @details Default action to take for cumulativeset options. Act
+## exactly like argsparse_set_cumulative_option() except that values
+## are not duplicated in the cumulated values array.
 ## @ingroup ArgsparseOptionSetter
 argsparse_set_cumulativeset_option() {
 	[[ $# -eq 2 ]] || return 1
