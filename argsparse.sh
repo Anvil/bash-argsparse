@@ -938,15 +938,6 @@ __argsparse_parse_options_prepare_exclude() {
 			exclusions["$exclude"]+="${exclusions["$exclude"]:+ }$option"
 		done
 	done
-	# Apply default values here
-	for option in "${!argsparse_options_default_values[@]}"
-	do
-		if ! argsparse_is_option_set "$option"
-		then
-			argsparse_set_option "$option" \
-				"${argsparse_options_default_values[$option]}"
-		fi
-	done
 }
 
 __argsparse_parse_options_check_exclusions() {
@@ -1079,6 +1070,17 @@ __argsparse_parse_options_no_usage() {
 			fi
 			# Save program parameters in array
 			program_params=( "$@" )
+
+			# Apply default values here
+			for option in "${!argsparse_options_default_values[@]}"
+			do
+				if ! argsparse_is_option_set "$option"
+				then
+					argsparse_set_option "$option" \
+						"${argsparse_options_default_values[$option]}"
+				fi
+			done
+
 			# If some mandatory option have been omited by the user, then
 			# print some error, and invoke usage.
 			# Also checks requires chains.
