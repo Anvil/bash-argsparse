@@ -136,6 +136,26 @@ parse_option_wrapper() {
 	parse_option_wrapper "= in optstring" -s
 )
 
+(
+	argsparse_use_option option1 "" type:weird:value
+	echo_for_print_status "Checking 'weird:value' property value"
+	[[ $(argsparse_has_option_property option1 type) = 'weird:value' ]]
+	print_exit_status
+)
+
+(
+	argsparse_use_option option1 ""
+	for weirdo in '?' , '*' '!'
+	do
+		(
+			echo_for_print_status "Checking forbidden '$weirdo' property value"
+			argsparse_set_option_property type:"foo${weirdo}bar" option1 2>/dev/null
+			failure
+			print_exit_status
+		)
+	done
+)
+
 value_check_test() {
 	[[ ${program_options[$value_check_option]} = $value_check_value ]]
 }
