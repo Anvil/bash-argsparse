@@ -290,6 +290,11 @@ declare -r argsparse_pgm=${0##*/}
 ## @ingroup ArgsparseParameter
 declare -i __argsparse_minimum_parameters=0
 
+## @brief Options default values.
+## @details An associative array where options default values are
+## stored as soon as the 'default:' property is set.
+declare -A argsparse_options_default_values=()
+
 ## @fn argsparse_minimum_parameters()
 ## @brief Set the minimum number of non-option parameters expected on
 ## the command line.
@@ -628,9 +633,11 @@ argsparse_usage_long() {
 				printf "${bol}Acceptable values: %s\n" \
 					"$(__argsparse_join_array " " "${values[@]}")"
 			fi
-			if __argsparse_index_of "$long" "${!program_options[@]}"
+			if __argsparse_index_of "$long" \
+				"${!argsparse_options_default_values[@]}" >/dev/null
 			then
-				printf "${bol}Default: %s.\n" "${program_options[$long]}"
+				printf "${bol}Default: %s.\n" \
+					"${argsparse_options_default_values[$long]}"
 			fi
 		fi
 		local -A properties=([require]="Requires" [alias]="Same as")
@@ -931,6 +938,15 @@ __argsparse_parse_options_prepare_exclude() {
 			exclusions["$exclude"]+="${exclusions["$exclude"]:+ }$option"
 		done
 	done
+	# Apply default values here
+	for option in "${!argsparse_options_default_values[@]}"
+	do
+		if ! argsparse_is_option_set "$option"
+		then
+			argsparse_set_option "$option" \
+				"${argsparse_options_default_values[$option]}"
+		fi
+	done
 }
 
 __argsparse_parse_options_check_exclusions() {
@@ -1197,7 +1213,7 @@ argsparse_set_option_property() {
 				;;
 			default:*)
 				# The default value
-				program_options["$option"]=${property#default:}
+				argsparse_options_default_values["$option"]=${property#default:}
 				;;
 			*)
 				return 1
