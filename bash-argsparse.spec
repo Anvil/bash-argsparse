@@ -1,19 +1,15 @@
 Summary: An high level argument parsing library for bash
 Name: bash-argsparse
 Version: 1.6
-Release: 0%{?dist}
+Release: 1%{?dist}
 License: WTFPL
 URL: https://github.com/Anvil/bash-argsparse
 Source0: http://argsparse.livna.org/%{name}-%{version}.tar.gz
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 BuildRequires: doxygen
-# The interpreter, with its minimal version.
+
 Requires: bash >= 4.1
-# Argsparse requires some very few binaries: getopt contained in
-# util-linux, getent contained in glibc-common and host contained in
-# bind-utils.
-Requires: util-linux glibc-common bind-utils
+Requires: /bin/getopt /bin/getent /bin/host
 
 %description
 An high level argument parsing library for bash.
@@ -46,6 +42,12 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
 
 %changelog
+* Tue Aug 12 2914 Dams <bash-argsparse[AT]livna.org> - 1.6-1
+- License tag is now WTFPL
+- Removed trailing dot at the end of Summary
+- Removed BuildRoot tag
+- Requiring commands instead of packages
+
 * Mon Jan 13 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-0
 - Version 1.6
 - Added doxygen documentation
