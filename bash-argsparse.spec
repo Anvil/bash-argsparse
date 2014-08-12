@@ -10,8 +10,9 @@ BuildArch: noarch
 BuildRequires: doxygen
 # The interpreter, with its minimal version.
 Requires: bash >= 4.1
-# Argsparse some very few binaries: getopt contained in util-linux,
-# getent contained in glibc-common and host contained in bind-utils.
+# Argsparse requires some very few binaries: getopt contained in
+# util-linux, getent contained in glibc-common and host contained in
+# bind-utils.
 Requires: util-linux glibc-common bind-utils
 
 %description
@@ -48,6 +49,7 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 * Mon Jan 13 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-0
 - Version 1.6
 - Added doxygen documentation
+- check section
 
 * Thu Mar 21 2013 Dams <bash-argsparse[AT]livna.org> - 1.5-0
 - Version 1.5
