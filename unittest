@@ -243,9 +243,7 @@ cumul_test() {
 (
 	argsparse_use_option option1 ""
 	argsparse_use_option option2 "" default:1 exclude:option1
-	set -x
 	parse_option_wrapper "exclusion does not prevent default values" --option1
-	set +x
 )
 
 (
