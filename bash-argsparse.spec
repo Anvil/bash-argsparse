@@ -42,7 +42,7 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
 
 %changelog
-* Tue Aug 12 2914 Dams <bash-argsparse[AT]livna.org> - 1.6-1
+* Tue Aug 12 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-1
 - License tag is now WTFPL
 - Removed trailing dot at the end of Summary
 - Removed BuildRoot tag
