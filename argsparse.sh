@@ -293,6 +293,7 @@ declare -i __argsparse_minimum_parameters=0
 ## @brief Internal use only.
 ## @details An associative array where options default values are
 ## stored as soon as the 'default:' property is set.
+## @ingroup ArgsparseProperty
 declare -A __argsparse_options_default_values=()
 
 ## @fn argsparse_minimum_parameters()
