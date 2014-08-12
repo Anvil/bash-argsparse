@@ -290,10 +290,10 @@ declare -r argsparse_pgm=${0##*/}
 ## @ingroup ArgsparseParameter
 declare -i __argsparse_minimum_parameters=0
 
-## @brief Options default values.
+## @brief Internal use only.
 ## @details An associative array where options default values are
 ## stored as soon as the 'default:' property is set.
-declare -A argsparse_options_default_values=()
+declare -A __argsparse_options_default_values=()
 
 ## @fn argsparse_minimum_parameters()
 ## @brief Set the minimum number of non-option parameters expected on
@@ -634,10 +634,10 @@ argsparse_usage_long() {
 					"$(__argsparse_join_array " " "${values[@]}")"
 			fi
 			if __argsparse_index_of "$long" \
-				"${!argsparse_options_default_values[@]}" >/dev/null
+				"${!__argsparse_options_default_values[@]}" >/dev/null
 			then
 				printf "${bol}Default: %s.\n" \
-					"${argsparse_options_default_values[$long]}"
+					"${__argsparse_options_default_values[$long]}"
 			fi
 		fi
 		local -A properties=([require]="Requires" [alias]="Same as")
@@ -1072,12 +1072,12 @@ __argsparse_parse_options_no_usage() {
 			program_params=( "$@" )
 
 			# Apply default values here
-			for option in "${!argsparse_options_default_values[@]}"
+			for option in "${!__argsparse_options_default_values[@]}"
 			do
 				if ! argsparse_is_option_set "$option"
 				then
 					argsparse_set_option "$option" \
-						"${argsparse_options_default_values[$option]}"
+						"${__argsparse_options_default_values[$option]}"
 				fi
 			done
 
@@ -1215,7 +1215,7 @@ argsparse_set_option_property() {
 				;;
 			default:*)
 				# The default value
-				argsparse_options_default_values["$option"]=${property#default:}
+				__argsparse_options_default_values["$option"]=${property#default:}
 				;;
 			*)
 				return 1
@@ -1236,12 +1236,18 @@ argsparse_has_option_property() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local property=$2
-	local p=${__argsparse_options_properties["$option"]}
-	if ! [[ "$p" =~ (^|.+,)"$property"(:([^,]+))?($|,.+) ]]
+	local p=${__argsparse_options_properties["$option"]:-""}
+
+	if [[ "$p" =~ (^|.+,)"$property"(:([^,]+))?($|,.+) ]]
 	then
+		printf %s "${BASH_REMATCH[3]}"
+	elif [[ $property = default && \
+		"${__argsparse_options_default_values[$option]+yes}" = yes ]]
+	then
+			print %s "${__argsparse_options_default_values[$option]}"
+	else
 		return 1
 	fi
-	printf %s "${BASH_REMATCH[3]}"
 }
 
 # Association short option -> long option.
