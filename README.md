@@ -10,6 +10,12 @@ This library is implemented for bash version 4. Prior versions of
 bash will fail at interpreting that code.
 
 
+### Online documentation
+
+Doxygen documentation is available online
+[here](http://argsparse.livna.org/doxygen/1.6/).
+
+
 ### Tarballs
 
 Though Bash Argsparse is hosted at
