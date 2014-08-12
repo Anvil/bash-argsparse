@@ -57,7 +57,9 @@ Content
 * bash-argsparse.spec: a spec file to build RPM packages.
 * debian: the directory required to build deb packages.
 * Doxyfile: doxygen configuration file.
-* doxygen-bash.sed: a sed script used as an input filter for doxygen.
+* doxygen-bash.sed:
+  [bash-doxygen](https://github.com/Anvil/bash-doxygen) doxygen input
+  filter.
 * unittest: a test script to validate most of argsparse features.
 
 ### Testing
