@@ -40,7 +40,7 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 ./unittest
 
 %files
-%doc tutorial README.md html
+%doc tutorial README.md html COPYING
 %{_bindir}/argsparse
 %{_bindir}/argsparse.sh
 
