@@ -35,6 +35,9 @@ mkdir -p $RPM_BUILD_ROOT/%{_bindir}
 install -m 0755 argsparse.sh $RPM_BUILD_ROOT/%{_bindir}
 ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
+%check
+./unittest
+
 %files
 %doc tutorial README.md html
 %{_bindir}/argsparse
