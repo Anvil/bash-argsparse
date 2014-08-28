@@ -722,7 +722,7 @@ argsparse_allow_no_argument() {
 	# considered as affirmative. Anything else is a negative value.
 	# @return 0 unless there's more than one parameter (or none).
 	[[ $# -eq 1 ]] || return 1
-	local param=$1
+	local param
 	case "${param,,}" in
 		yes|true|1)
 			__argsparse_allow_no_argument=yes
