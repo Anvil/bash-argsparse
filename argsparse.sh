@@ -725,7 +725,7 @@ __argsparse_is_array_declared() {
 __argsparse_check_requires() {
 	# @return the number of missing option detected, but this function
 	# actually stops are the first failing *list* of dependencies.
-	local option=$1
+	local option
 	local requirestring require count=0
 	local -a requires
 	for option in "${!program_options[@]}"
