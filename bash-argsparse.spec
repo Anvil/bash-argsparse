@@ -1,7 +1,7 @@
 Summary: An high level argument parsing library for bash
 Name: bash-argsparse
 Version: 1.6
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: WTFPL
 URL: https://github.com/Anvil/bash-argsparse
 Source0: http://argsparse.livna.org/%{name}-%{version}.tar.gz
@@ -42,6 +42,9 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
 
 %changelog
+* Mon Sep 15 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-2
+- Fixed date in changelog entry
+
 * Tue Aug 12 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-1
 - License tag is now WTFPL
 - Removed trailing dot at the end of Summary
