@@ -381,9 +381,10 @@ rm -Rf "$dir"
 	TEST=failure parse_option_wrapper "custom type (2)" --option asdf
 )
 
+printf "Report:\n"
 if [[ $disabled -ne 0 ]]
 then
-	printf "%d disabled\n" "$disabled"
+	printf "%d test(s) disabled.\n" "$disabled"
 fi
 
 if [[ $errors -ne 0 ]]
@@ -399,5 +400,6 @@ then
 	} 2>&1
 	exit 1
 else
+	printf "All tests passed.\n"
 	exit 0
 fi
