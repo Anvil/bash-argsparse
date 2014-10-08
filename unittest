@@ -265,7 +265,6 @@ declare -A types=(
 	[file]="$file ${types[link]}"
 	[directory]=". .. $dir $dir/linkdir"
 	[pipe]="$fifo"
-	[terminal]=0
 	[socket]=/dev/log
 	[link]="$dir/link1 $dir/link2"
 	[char]="c . 0 @"
@@ -281,6 +280,22 @@ declare -A types=(
 	[portnumber]=1234
 	[hostname]="livna.org localhost"
 )
+
+# Look for a terminal
+for stdfd in 0 1 2
+do
+	if [[ -t $stdfd ]] 
+	then
+		types[terminal]=$stdfd
+		break
+	fi
+done
+
+if [[ ${types[terminal]-unset} = unset ]]
+then
+	printf "No terminal found: won't test.\n"
+fi
+
 (cd "$dir" && ln -s "$file" link1 && ln -s asdf link2 && ln -s . linkdir)
 for type in "${!types[@]}"
 do
@@ -348,6 +363,10 @@ rm -Rf "$dir"
 if [[ $errors -ne 0 ]]
 then
 	printf "%d error(s) encountered. (See above)\n" "$errors"
+	printf "Environment was:\n"
+	printf "bash is "
+	command -v bash
+	bash --version
 	printf "Bash settings were:\n"
 	printf shopt\\n
 	shopt
