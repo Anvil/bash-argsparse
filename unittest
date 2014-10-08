@@ -348,6 +348,11 @@ rm -Rf "$dir"
 if [[ $errors -ne 0 ]]
 then
 	printf "%d error(s) encountered. (See above)\n" "$errors"
+	printf "Bash settings were:\n"
+	printf shopt\\n
+	shopt
+	printf 'set -o\n'
+	set -o
 	exit 1
 else
 	exit 0
