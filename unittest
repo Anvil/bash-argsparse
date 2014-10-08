@@ -9,6 +9,7 @@ PATH="$PATH:."
 
 shopt -s extdebug
 errors=0
+disabled=0
 
 err_trap() {
 	: $((errors+=1))
@@ -257,14 +258,11 @@ cumul_test() {
 )
 
 dir=$(mktemp -d)
-fifo="$dir/fifo"
 file=$(mktemp --tmpdir="$dir")
-mkfifo "$fifo"
 declare -A types=(
 	[link]="$dir/link1 $dir/link2"
 	[file]="$file ${types[link]}"
 	[directory]=". .. $dir $dir/linkdir"
-	[pipe]="$fifo"
 	[char]="c . 0 @"
 	[unsignedint]=123
 	[int]="1 123 0 -1 -938945349"
@@ -278,6 +276,15 @@ declare -A types=(
 	[portnumber]=1234
 )
 
+fifo="$dir/fifo"
+if mkfifo "$fifo"
+then
+	types[pipe]=$fifo
+else
+	printf "Could not create persistent fifo. Disabling pipe type test.\n"
+	: $((disabled++))
+fi
+
 for socket in /dev/log
 do
 	[[ -S $socket ]] || continue
@@ -285,7 +292,7 @@ do
 done
 
 # Look for a terminal
-for stdfd in 0 1 2
+for stdfd in 0
 do
 	[[ -t $stdfd ]] || continue
 	types[terminal]=$stdfd
@@ -295,6 +302,7 @@ for t in terminal socket
 do
 	if [[ ${types[$t]-unset} = unset ]]
 	then
+		: $((disabled++))
 		printf "No %s found: won't test.\n" "$t"
 	fi
 done
@@ -306,6 +314,7 @@ then
 	types[host]+=" ${types[hostname]}"
 else
 	printf "Cannot resolv localhost. Not testing hostname type.\n"
+	: $((disabled++))
 fi
 
 (cd "$dir" && ln -s "$file" link1 && ln -s asdf link2 && ln -s . linkdir)
@@ -372,18 +381,22 @@ rm -Rf "$dir"
 	TEST=failure parse_option_wrapper "custom type (2)" --option asdf
 )
 
+if [[ $disabled -ne 0 ]]
+then
+	printf "%d disabled\n" "$disabled"
+fi
+
 if [[ $errors -ne 0 ]]
 then
 	printf "%d error(s) encountered. (See above)\n" "$errors"
 	printf "Environment was:\n"
-	printf "bash is "
-	command -v bash
-	bash --version
-	printf "Bash settings were:\n"
-	printf shopt\\n
-	shopt
-	printf 'set -o\n'
-	set -o
+	set -x
+	{
+		command -v bash
+		bash --version
+		shopt
+		set -o
+	} 2>&1
 	exit 1
 else
 	exit 0
