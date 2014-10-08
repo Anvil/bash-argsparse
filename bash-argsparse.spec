@@ -6,7 +6,8 @@ License: WTFPL
 URL: https://github.com/Anvil/bash-argsparse
 Source0: http://argsparse.livna.org/%{name}-%{version}.tar.gz
 BuildArch: noarch
-BuildRequires: doxygen
+# Binaries are required for unittest to perform cleanly.
+BuildRequires: doxygen /bin/getopt /bin/getent /bin/host
 
 Requires: bash >= 4.1
 Requires: /bin/getopt /bin/getent /bin/host
