@@ -1,16 +1,16 @@
 Summary: An high level argument parsing library for bash
 Name: bash-argsparse
 Version: 1.6
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: WTFPL
 URL: https://github.com/Anvil/bash-argsparse
 Source0: http://argsparse.livna.org/%{name}-%{version}.tar.gz
 BuildArch: noarch
 # Binaries are required for unittest to perform cleanly.
-BuildRequires: doxygen /bin/getopt /bin/getent /bin/host
+BuildRequires: doxygen /bin/getopt /bin/getent /usr/bin/host
 
 Requires: bash >= 4.1
-Requires: /bin/getopt /bin/getent /bin/host
+Requires: /bin/getopt /bin/getent /usr/bin/host
 
 %description
 An high level argument parsing library for bash.
@@ -43,8 +43,12 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
 
 %changelog
+* Thu Oct  9 2014 Dams <anvil[AT]livna.org> - 1.6-4
+- Update host path in *Requires tags.
+
 * Wed Oct 8 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-3
 - Added more BuildRequires to allow unittest script to run correctly
+  restricted small environments
 
 * Mon Sep 15 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-2
 - Fixed date in changelog entry
