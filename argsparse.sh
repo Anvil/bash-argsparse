@@ -264,6 +264,12 @@ then
 	exit 1
 fi
 
+if declare -rp ARGSPARSE_VERSION >/dev/null 2>&1
+then
+	# argsparse is already loaded.
+	return 0 2>/dev/null
+fi
+
 ## @var ARGSPARSE_VERSION
 ## @brief argsparse version number
 ## @showinitializer
