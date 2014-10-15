@@ -269,7 +269,6 @@ declare -A types=(
 	[hexa]="0x123abc 71234 abc"
 	[ipv4]="192.168.40.254 127.0.0.1 1.2.3.4"
 	[ipv6]="2001:7a8:b018::1 ::1 2001:7a8:b018:0:21f:c6ff:fe59:71fd"
-	[host]="${types[ipv4]} ${types[ipv6]}"
 	[username]=$(whoami)
 	[group]=$(id -gn)
 	[port]="ssh 80"
@@ -307,6 +306,8 @@ do
 	fi
 done
 
+# Default 'host' type test case:
+types[host]="${types[ipv4]} ${types[ipv6]}"
 # Test hostnames only if we can actually resolv.
 if host localhost >/dev/null 2>&1
 then
