@@ -261,7 +261,7 @@ dir=$(mktemp -d)
 file=$(mktemp --tmpdir="$dir")
 declare -A types=(
 	[link]="$dir/link1 $dir/link2"
-	[file]="$file ${types[link]}"
+	[file]="$file $dir/link1"
 	[directory]=". .. $dir $dir/linkdir"
 	[char]="c . 0 @"
 	[unsignedint]=123
@@ -318,6 +318,7 @@ else
 fi
 
 (cd "$dir" && ln -s "$file" link1 && ln -s asdf link2 && ln -s . linkdir)
+
 for type in "${!types[@]}"
 do
 	(
@@ -337,7 +338,7 @@ declare -A bad_types=(
 	[directory]="${types[file]} $fifo $dir/link1"
 	[pipe]="${types[file]} ${types[dir]}"
 	[socket]="${types[file]} $fifo $dir/link1"
-	[link]="${types[file]} $fifo"
+	[link]="$file $fifo"
 	[char]="12 abc"
 	[unsignedint]="-1 -2234958 abc"
 	[int]="a b casdf"
