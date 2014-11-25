@@ -105,7 +105,7 @@
 ## @code
 ##   file directory pipe terminal socket link char unsignedint uint
 ##   integer int hexa ipv4 ipv6 ip hostname host portnumber port
-##   username group
+##   username group date
 ## @endcode
 ##
 ## @li "exclude:<option> <option>" @n
@@ -842,6 +842,10 @@ argsparse_check_option_type() {
 			;;
 		group)
 			getent group "$value" >/dev/null 2>&1
+			;;
+		date)
+			date --date "$value"  >/dev/null 2>&1
+			return 
 			;;
 		*)
 			# Invoke user-defined type-checking function if available.

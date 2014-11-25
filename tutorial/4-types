@@ -32,6 +32,7 @@ argsparse_use_option IP6: "An IPv6 address" type:ipv6
 argsparse_use_option host: "Some host" type:host
 argsparse_use_option user: "A system UNIX user name" type:username
 argsparse_use_option group: "A UNIX group name" type:group
+argsparse_use_option date: "Valid date string" type:date
 
 # A port number is just a regular postive <1-65535> integer.
 argsparse_use_option portnumber: "An IP port number" type:portnumber
