@@ -713,7 +713,7 @@ __argsparse_values_array_identifier() {
 	# of an option with the cumulative or cumulativeset property.
 	# @param option an option name.
 	local option=$1
-	local array="option_${option}_values"
+	local array="option_$(argsparse_option_to_identifier "$option")_values"
 	__argsparse_is_array_declared "$array" || return 1
 	printf %s "$array[@]"
 }
