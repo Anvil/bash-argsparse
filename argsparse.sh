@@ -5,7 +5,7 @@
 ## @author Damien Nadé <bash-argsparse@livna.org>
 ## @brief Bash Argsparse Library
 ## @copyright WTFPLv2
-## @version 1.6.1
+## @version 1.6.2
 #
 #########
 # License:
@@ -273,7 +273,7 @@ fi
 ## @var ARGSPARSE_VERSION
 ## @brief argsparse version number
 ## @showinitializer
-declare -r ARGSPARSE_VERSION=1.6.1
+declare -r ARGSPARSE_VERSION=1.6.2
 
 # Enable required features
 shopt -s extglob

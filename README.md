@@ -13,7 +13,7 @@ bash will fail at interpreting that code.
 ### Online documentation
 
 Doxygen documentation is available online
-[here](http://argsparse.livna.org/doxygen/1.6.1/).
+[here](http://argsparse.livna.org/doxygen/1.6.2/).
 
 
 ### Tarballs
