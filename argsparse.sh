@@ -972,8 +972,12 @@ __argsparse_parse_options_check_exclusions() {
 	return 1
 }
 
+## @fn __argsparse_set_option
+## @private
+## @brief Resolv option-specific setter function and invoke it.
+## @param option an option name.
+## @return the setter function return code
 __argsparse_set_option() {
-	# @param an option
 	[[ $# -eq 1 || $# -eq 2 ]] || return 1
 	local option=$1
 	local set_hook identifier
@@ -990,9 +994,8 @@ __argsparse_set_option() {
 	else
 		set_hook=argsparse_set_option
 	fi
-	# Invoke setting hook, and if it returns returns some non-zero
-	# status, send the user back to usage, if declared, and return
-	# with error.
+	# Invoke setting hook, and if it returns some non-zero status,
+	# send the user back to usage, if declared, and return with error.
 	# The specific $value substitution, here, is to distinguish an
 	# empty value from a no-value.
 	"$set_hook" "$option" ${value+"$value"}
