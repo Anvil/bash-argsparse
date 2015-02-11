@@ -2,9 +2,18 @@
 /^## \+@fn/{
     :step
     /@param [^ ]\+ .*$/{
-        s/\(@fn [^(]*\)(\(.*\))\(.*\)\(@param \)\([^ \n]\+\(\.\.\.\)\?\)\([^\n]*\)$/\1(\2, \5)\3\4\5\7/
+        # Groups are
+        # \1: @fn <funcname>
+        # \2: already identified params
+        # \3: previous doc string
+        # \4: @param<space>
+        # \5: newly identified param name plus optional dot-dot-dot string
+        # \6: optional dot-dot-dot string
+        # \7: everything after \5 to end of line
+        # Here, we-reinsert param names into the <funcname>()
+        s/\(@fn [^(\n]\+\)(\([^(]*\))\(.*\)\(@param \)\([^ \n]\+\(\.\.\.\)\?\)\([^\n]*\)$/\1(\2, \5)\3\4\5\7/
     }
-    /[a-zA-Z0-9_]\+() {$/!{
+    / *[a-zA-Z0-9_]\+ *() *{ *$/!{
         N
         b step
     }
