@@ -972,9 +972,14 @@ __argsparse_parse_options_check_exclusions() {
 	return 1
 }
 
-## @fn __argsparse_set_option
+## @fn __argsparse_set_option()
 ## @private
 ## @brief Resolv option-specific setter function and invoke it.
+## @details Check if a user-defined option setting function
+## (set_option_<optionname>) has been defined or if the generic
+## argsparse_set_option function is to be used. Then invoke the that
+## function with the option name as first parameter. If a value for
+## the option is involved, it is passed as a second parameter.
 ## @param option an option name.
 ## @return the setter function return code
 __argsparse_set_option() {
