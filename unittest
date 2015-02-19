@@ -213,7 +213,7 @@ cumul_test() {
 	option=option2
 	cumul_array=(1 2)
 	argsparse_use_option option2 "" cumulativeset
-	INNERTEST=cumul_test parse_option_wrapper "cumulativeset property behaviour" "${cumul_array[@]/#/--option2=}" "${cumul_array[@]/#/--option=}"
+	INNERTEST=cumul_test parse_option_wrapper "cumulativeset property behaviour" "${cumul_array[@]/#/--option2=}" "${cumul_array[@]/#/--option2=}"
 )
 
 (
