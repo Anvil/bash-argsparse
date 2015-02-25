@@ -708,10 +708,17 @@ set_option_help() {
 	usage
 }
 
+## @fn __argsparse_values_array_identifier()
+## @private
+## @brief Prints the name of the array containing all user-declared
+## acceptable values for an option.
+## @details from "opt" or "opt-name" string, prints
+## "option_opt_values[@]" or "option_opt_name_values[@]", unless array
+## is not declared, in which case function will return an error.
+## @param option an option name.
+## @retval 1 if array has not been declared
+## @retval 0 else. Array name will written to stdout.
 __argsparse_values_array_identifier() {
-	# Prints the name of the array which will contain all the values
-	# of an option with the cumulative or cumulativeset property.
-	# @param option an option name.
 	local option=$1
 	local array="option_$(argsparse_option_to_identifier "$option")_values"
 	__argsparse_is_array_declared "$array" || return 1
