@@ -982,6 +982,7 @@ __argsparse_parse_options_check_exclusions() {
 ## the option is involved, it is passed as a second parameter.
 ## @param option an option name.
 ## @return the setter function return code
+## @ingroup ArgsparseOptionSetter
 __argsparse_set_option() {
 	[[ $# -eq 1 || $# -eq 2 ]] || return 1
 	local option=$1
