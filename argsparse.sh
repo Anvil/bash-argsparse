@@ -971,11 +971,11 @@ __argsparse_parse_options_check_exclusions() {
 
 	for option in "${!program_options[@]}"
 	do
-	if [[ "${exclusions["$option"]}" =~ ^(.* )?"$new_option"( .*)?$ ]]
-	then
-		printf %s "$option"
-		return 0
-	fi
+		if [[ "${exclusions["$option"]}" =~ ^(.* )?"$new_option"( .*)?$ ]]
+		then
+			printf %s "$option"
+			return 0
+		fi
 	done
 	return 1
 }
