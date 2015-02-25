@@ -194,6 +194,7 @@ value_check() {
 )
 
 cumul_test() {
+	[[ $? -ne 0 ]] && return 1
 	local cumul="cumulated_values_$option[@]"
 	local -a array=( "${!cumul}" )
 	local i
@@ -210,6 +211,9 @@ cumul_test() {
 	option=option1
 	cumul_array=(1 2 1 2)
 	INNERTEST=cumul_test parse_option_wrapper "cumulative property behaviour" "${cumul_array[@]/#/--option1=}"
+)
+
+(
 	option=option2
 	cumul_array=(1 2)
 	argsparse_use_option option2 "" cumulativeset
