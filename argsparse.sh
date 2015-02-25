@@ -1469,7 +1469,8 @@ argsparse_report() {
 		if argsparse_is_option_set "$option"
 		then
 			printf "yes (%s" "${program_options[$option]}"
-			if argsparse_has_option_property "$option" cumulative
+			if argsparse_has_option_property "$option" cumulative || \
+				argsparse_has_option_property "$option" cumulativeset
 			then
 				array_name="$(argsparse_get_cumulative_array_name "$option")[@]"
 				array=( "${!array_name}" )
