@@ -868,22 +868,23 @@ argsparse_check_option_type() {
 	esac
 }
 
+## @fn __argsparse_parse_options_valuecheck()
+## @private
+## @brief Check a value given to an option.
+## @details If an enumeration has been defined for the option, check
+## against that. If there's no enumeration, but option has a type
+## property, then check against the type. In the end, check against
+## check_value_of_<option> function, if it's been defined.
+## @param option an option name.
+## @param value anything.
+## @retval 0 if value is correct for given option.
 __argsparse_parse_options_valuecheck() {
-	# Check a value.
-	# If an enumeration has been defined for the option, check against
-	# that. If there's no enumeration, but option has a type property,
-	# then check against the type.
-	# In the end, check against check_value_of_<option> function, if
-	# it's been defined.
-	# @param option an option name.
-	# @param value anything.
-	# @retval 0 if value is correct for given option.
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
 	local identifier possible_values option_type
 	identifier="$(argsparse_option_to_identifier "$option")"
-	if possible_values=$(__argsparse_values_array_identifier "$identifier")
+	if possible_values=$(__argsparse_values_array_identifier "$option")
 	then
 		__argsparse_index_of "$value" "${!possible_values}" >/dev/null || \
 			return 1
