@@ -23,6 +23,9 @@ Though Bash Argsparse is hosted at
 tarballs at the following URL:
 [http://argsparse.livna.org/](http://argsparse.livna.org/)
 
+### RPMS
+
+Though you can build your own package using the provided spec file, a bash-argsparse is actually available in fedora repositories, for all releases from 19 to rawhide.
 
 ### Features
 
@@ -52,8 +55,8 @@ extended (ksh-like) globbing.
 The "extglob" shell option is automatically enabled when loading
 the argsparse library.
 
-The code has been tested on bash 4.1 and 4.2 and is definitely not
-POSIX-compliant.
+The code has been tested on bash 4.1, 4.2 and 4.3 and is definitely
+not POSIX-compliant.
 
 Content
 -------
