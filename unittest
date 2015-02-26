@@ -6,6 +6,9 @@
 
 PATH="$PATH:."
 
+PS4='+ ${FUNCNAME:-main}${LINENO:+:$LINENO}>'
+
+# If it works with failglob and nounset, it will work without.
 shopt -s failglob
 set -o nounset
 
@@ -92,7 +95,6 @@ parse_option_wrapper() {
 	(
 		printf "Test is: %s\n" "$message"
 		printf "Validation is: %s\n" "$TEST"
-		PS4='+ ${FUNCNAME:-main}${LINENO:+:$LINENO}>'
 		set -x
 		argsparse_parse_options "$@"
 		${INNERTEST:-exit $?}
