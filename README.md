@@ -58,6 +58,9 @@ the argsparse library.
 The code has been tested on bash 4.1, 4.2 and 4.3 and is definitely
 not POSIX-compliant.
 
+Compliance with the "nounset" and "failglob" bash settings is
+supported.
+
 Content
 -------
 
@@ -91,7 +94,7 @@ Known limitations (or bugs)
 
 * You cannot have a short option without a long option.
 * Too few verifications about property values are made.
-* Compliance against some bash settings like nounset and errexit has
-  not (yet) been proved, but is wished.
+* Compliance against some bash settings like errexit has not (yet)
+  been proved, but is wished.
 * Compliance with Non-bind versions of the "host" command has not been
   tested.
