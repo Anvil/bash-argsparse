@@ -1,15 +1,21 @@
 #!/bin/bash
+# -*- tab-width: 4; encoding: utf-8 -*-
 #
 #
 #
 
 PATH="$PATH:."
 
-. argsparse.sh
+shopt -s failglob
+set -o nounset
+
+. ./argsparse.sh
 
 shopt -s extdebug
 errors=0
 disabled=0
+
+rm -f unittest.log
 
 err_trap() {
 	: $((errors+=1))
@@ -48,7 +54,8 @@ print_exit_status() {
 
 echo_for_print_status() {
     local m="$1"
-    if tty >/dev/null 2>&1 && [[ -n "$PRINT_STATUS_COLOR" ]]
+    if tty >/dev/null 2>&1 && \
+	   [[ -v "PRINT_STATUS_COLOR" && -n "$PRINT_STATUS_COLOR" ]]
     then
         m="$(tput setaf $PRINT_STATUS_COLOR)$m$(tput sgr0)"
     fi
@@ -63,7 +70,8 @@ exec_and_print_status() {
     # returns the exit status code of the command
     [[ $# -lt 2 ]] && return 1
     local m="$1" ; shift
-    PRINT_STATUS_COLOR="$PRINT_STATUS_COLOR" echo_for_print_status "$m"
+    PRINT_STATUS_COLOR="${PRINT_STATUS_COLOR-}" \
+		      echo_for_print_status "$m"
     "$@"
     print_exit_status $?
 }
@@ -82,9 +90,13 @@ parse_option_wrapper() {
 	shift
 	echo_for_print_status "Checking $message"
 	(
+		printf "Test is: %s\n" "$message"
+		printf "Validation is: %s\n" "$TEST"
+		PS4='+ ${FUNCNAME:-main}${LINENO:+:$LINENO}>'
+		set -x
 		argsparse_parse_options "$@"
-		$INNERTEST
-	) >/dev/null 2>&1
+		${INNERTEST:-exit $?}
+	) >>unittest.log 2>&1
 	$TEST
 	print_exit_status || exit
 }
@@ -341,7 +353,7 @@ done
 declare -A bad_types=(
 	[file]=". .. $dir $fifo"
 	[directory]="${types[file]} $fifo $dir/link1"
-	[pipe]="${types[file]} ${types[dir]}"
+	[pipe]="${types[file]} ${types[dir]-}"
 	[socket]="${types[file]} $fifo $dir/link1"
 	[link]="$file $fifo"
 	[char]="12 abc"

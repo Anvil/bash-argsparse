@@ -451,8 +451,13 @@ argsparse_set_cumulative_option() {
 	local array="$(argsparse_get_cumulative_array_name "$option")"
 	local size temp="$array[@]"
 	local -a copy
-	copy=( "${!temp}" )
-	size=${#copy[@]}
+	if [[ -v "$temp" ]]
+	then
+		copy=( "${!temp}" )
+		size=${#copy[@]}
+	else
+		size=0
+	fi
 	printf -v "$array[$size]" %s "$value"
 	argsparse_set_option_without_value "$option"
 }
@@ -470,7 +475,8 @@ argsparse_set_cumulativeset_option() {
 	local option=$1
 	local value=$2
 	local array="$(argsparse_get_cumulative_array_name "$option")[@]"
-	if ! __argsparse_index_of "$value" "${!array}" >/dev/null
+	if [[ ! -v "$array" ]] || \
+		   ! __argsparse_index_of "$value" "${!array}" >/dev/null
 	then
 		# The value is not already in the array, so add it.
 		argsparse_set_cumulative_option "$option" "$value"
@@ -590,10 +596,13 @@ argsparse_usage_short() {
 		fi
 		__argsparse_usage_short_line_management "$current_option"
 	done
-	for param in "${__argsparse_parameters_description[@]}"
-	do
-		__argsparse_usage_short_line_management "$param"
-	done
+	if [[ -v '__argsparse_parameters_description[@]' ]]
+	then
+	   for param in "${__argsparse_parameters_description[@]}"
+	   do
+		   __argsparse_usage_short_line_management "$param"
+	   done
+	fi
 	printf -- "%s\n" "$current_line"
 }
 
@@ -633,6 +642,7 @@ argsparse_usage_long() {
 	local q=\' bol='\t\t  '
 	local -A long_to_short=()
 	local -a values
+	# Reverse the __argsparse_short_options array.
 	for short in "${!__argsparse_short_options[@]}"
 	do
 		long=${__argsparse_short_options["$short"]}
@@ -654,11 +664,12 @@ argsparse_usage_long() {
 			sep="\n$bol"
 		fi
 		# Define format according to the presence of the short option.
-		short=${long_to_short["$long"]}
-		if [[ -n "$short" ]]
+		if [[ -v long_to_short[$long] ]]
 		then
+			short="${long_to_short[$long]}"
 			format=" -%s | %- 11s$sep%s\n"
 		else
+			short=""
 			format=" %s     %- 11s$sep%s\n"
 		fi
 		printf -- "$format" "$short" "--$long" \
@@ -719,8 +730,8 @@ argsparse_usage() {
 	printf "\n"
 	# This will print option descriptions.
 	argsparse_usage_long
-	[[ -z "$argsparse_usage_description" ]] || \
-		printf "\n%s\n" "$argsparse_usage_description"
+	[[ -v "argsparse_usage_description" ]] && \
+		printf "\n%s\n" "$argsparse_usage_description" || :
 }
 
 ## @fn usage()
@@ -1009,7 +1020,7 @@ __argsparse_parse_options_check_exclusions() {
 
 	for option in "${!program_options[@]}"
 	do
-		if [[ "${exclusions["$option"]}" =~ ^(.* )?"$new_option"( .*)?$ ]]
+		if [[ "${exclusions["$option"]-}" =~ ^(.* )?"$new_option"( .*)?$ ]]
 		then
 			printf %s "$option"
 			return 0
@@ -1264,7 +1275,7 @@ argsparse_set_option_property() {
 			mandatory|hidden|value|cumulative|cumulativeset)
 				# We use the comma as the property character separator
 				# in the __argsparse_options_properties array.
-				p=${__argsparse_options_properties["$option"]}
+				p=${__argsparse_options_properties["$option"]:-}
 				__argsparse_options_properties["$option"]="${p:+$p,}$property"
 				;;
 			short:?)
