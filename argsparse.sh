@@ -544,12 +544,27 @@ argsparse_set_option() {
 
 # The usage-related functions.
 
+__argsparse_usage_short_line_management() {
+	[[ $# -eq 1 ]] || return 1
+	local next_token=$1
+	local max_length=78
+	local bigger_line
+	bigger_line="$current_line $next_token"
+	if [[ "${#bigger_line}" -gt "$max_length" ]]
+	then
+		printf -- '%s \\\n' "$current_line"
+		printf -v current_line "\t%s" "$next_token"
+	else
+		current_line=$bigger_line
+	fi
+}
+
 ## @fn argsparse_usage_short()
 ## @details Generate and print the "short" description of the program
 ## usage.
 ## @ingroup ArgsparseUsage
 argsparse_usage_short() {
-	local option values current_line current_option bigger_line
+	local option values current_line current_option param
 	local max_length=78
 	current_line=$argsparse_pgm
 	for option in "${!__argsparse_options_descriptions[@]}"
@@ -573,16 +588,39 @@ argsparse_usage_short() {
 		then
 			current_option="[ $current_option ]"
 		fi
-		bigger_line="$current_line $current_option"
-		if [[ "${#bigger_line}" -gt "$max_length" ]]
-		then
-			printf -- '%s \\\n' "$current_line"
-			printf -v current_line "\t%s" "$current_option"
-		else
-			current_line=$bigger_line
-		fi
+		__argsparse_usage_short_line_management "$current_option"
+	done
+	for param in "${__argsparse_parameters_description[@]}"
+	do
+		__argsparse_usage_short_line_management "$param"
 	done
 	printf -- "%s\n" "$current_line"
+}
+
+declare -a __argsparse_parameters_description
+
+__argsparse_describe_parameters() {
+	[[ $# -eq 0 ]] && return
+	local param last name
+	__argsparse_parameter_description=( "[--]" )
+	for param in "$@"
+	do
+		name=${param%?}
+		last=${param#$name}
+		case "$last" in
+			'?')
+				__argsparse_parameters_description+=( "[ $name ]" )
+				;;
+			'*')
+				__argsparse_parameters_description+=( "[ $name ... ]" )
+				;;
+			+)
+				__argsparse_parameters_description+=( "$name [ $name ... ]" )
+				;;
+			*)
+				__argsparse_parameters_description+=( "$param" )
+		esac
+	done
 }
 
 ## @fn argsparse_usage_long()
