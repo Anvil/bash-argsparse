@@ -1269,7 +1269,7 @@ argsparse_set_option_property() {
 				;;
 			short:?)
 				short=${property#short:}
-				if [[ -n "${__argsparse_short_options[$short]}" ]]
+				if [[ -v "__argsparse_short_options[$short]" ]]
 				then
 					printf >&2 \
 						"%s: %s: short option for %s conflicts with already-configured short option for %s.\n" \
