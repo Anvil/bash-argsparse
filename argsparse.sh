@@ -1362,7 +1362,8 @@ __argsparse_check_declaration_conflict() {
 	local identifier=$(argsparse_option_to_identifier "$option")
 	local -a identifiers=("${!__argsparse_tmp_identifiers[@]}")
 	local conflict
-	if conflict=$(__argsparse_index_of "$identifier" "${identifiers[@]}")
+	if [[ -v "identifiers[@]" ]] && \
+		   conflict=$(__argsparse_index_of "$identifier" "${identifiers[@]}")
 	then
 		printf %s "${__argsparse_tmp_identifiers[${identifiers[$conflict]}]}"
 		return 0
