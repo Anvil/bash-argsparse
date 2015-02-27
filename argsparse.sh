@@ -451,7 +451,7 @@ argsparse_set_cumulative_option() {
 	local array="$(argsparse_get_cumulative_array_name "$option")"
 	local size temp="$array[@]"
 	local -a copy
-	if [[ -v "$temp" ]]
+	if __argsparse_has_array_item "$array" 0
 	then
 		copy=( "${!temp}" )
 		size=${#copy[@]}
@@ -474,8 +474,9 @@ argsparse_set_cumulativeset_option() {
 	[[ $# -eq 2 ]] || return 1
 	local option=$1
 	local value=$2
-	local array="$(argsparse_get_cumulative_array_name "$option")[@]"
-	if [[ ! -v "$array" ]] || \
+	local array_name="$(argsparse_get_cumulative_array_name "$option")"
+	local array="$array_name[@]"
+	if ! __argsparse_has_array_item "$array_name" || \
 		   ! __argsparse_index_of "$value" "${!array}" >/dev/null
 	then
 		# The value is not already in the array, so add it.
@@ -596,7 +597,7 @@ argsparse_usage_short() {
 		fi
 		__argsparse_usage_short_line_management "$current_option"
 	done
-	if [[ -v '__argsparse_parameters_description[@]' ]]
+	if __argsparse_has_array_item __argsparse_parameters_description
 	then
 	   for param in "${__argsparse_parameters_description[@]}"
 	   do
@@ -664,7 +665,7 @@ argsparse_usage_long() {
 			sep="\n$bol"
 		fi
 		# Define format according to the presence of the short option.
-		if [[ -v long_to_short[$long] ]]
+		if __argsparse_has_array_item long_to_short "$long"
 		then
 			short="${long_to_short[$long]}"
 			format=" -%s | %- 11s$sep%s\n"
@@ -782,6 +783,20 @@ __argsparse_is_array_declared() {
 	local array_name=$1
 	[[ "$(declare -p "$array_name" 2>/dev/null)" = \
 		"declare -"[aA]" $array_name='("* ]]
+}
+
+__argsparse_has_array_item() {
+	# @param an array name.
+	# @retval 0 if an array has been already declared by the name of
+	# the parameter.
+	[[ $# = [12] ]] || return 1
+	local array_name=$1
+	local index=${2:-@}
+	local var="$array_name[$index]"
+	(
+		set +o nounset
+		[[ ${!var+set} = set ]]
+	)
 }
 
 __argsparse_check_requires() {
@@ -1280,7 +1295,8 @@ argsparse_set_option_property() {
 				;;
 			short:?)
 				short=${property#short:}
-				if [[ -v "__argsparse_short_options[$short]" ]]
+				if __argsparse_has_array_item \
+					__argsparse_short_options "$short"
 				then
 					printf >&2 \
 						"%s: %s: short option for %s conflicts with already-configured short option for %s.\n" \
@@ -1373,7 +1389,7 @@ __argsparse_check_declaration_conflict() {
 	local identifier=$(argsparse_option_to_identifier "$option")
 	local -a identifiers=("${!__argsparse_tmp_identifiers[@]}")
 	local conflict
-	if [[ -v "identifiers[@]" ]] && \
+	if __argsparse_has_array_item identifiers && \
 		   conflict=$(__argsparse_index_of "$identifier" "${identifiers[@]}")
 	then
 		printf %s "${__argsparse_tmp_identifiers[${identifiers[$conflict]}]}"
