@@ -210,6 +210,7 @@ value_check() {
 cumul_test() {
 	[[ $? -ne 0 ]] && return 1
 	local cumul="cumulated_values_$option[@]"
+	# Shoud never trigger nounset
 	local -a array=( "${!cumul}" )
 	local i
 	[[ ${#array[@]} -eq "${#cumul_array[@]}" ]] || return 1
