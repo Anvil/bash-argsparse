@@ -526,7 +526,7 @@ argsparse_set_option() {
 	then
 		local value=$2
 	fi
-
+	local property
 	local -A setters=(
 		[cumulative]=argsparse_set_cumulative_option
 		[cumulativeset]=argsparse_set_cumulativeset_option
