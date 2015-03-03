@@ -1267,7 +1267,7 @@ argsparse_set_option_property() {
 	[[ $# -ge 2 ]] || return 1
 	local property=$1
 	shift
-	local option p
+	local option p short
 	for option in "$@"
 	do
 		case "$property" in
