@@ -57,8 +57,7 @@ print_exit_status() {
 
 echo_for_print_status() {
     local m="$1"
-    if tty >/dev/null 2>&1 && \
-	   [[ -v "PRINT_STATUS_COLOR" && -n "$PRINT_STATUS_COLOR" ]]
+    if tty >/dev/null 2>&1 && [[ -n "${PRINT_STATUS_COLOR:-}" ]]
     then
         m="$(tput setaf $PRINT_STATUS_COLOR)$m$(tput sgr0)"
     fi
