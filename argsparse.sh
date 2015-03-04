@@ -38,6 +38,10 @@
 ## @note
 ## This library is implemented for bash version 4. Prior versions of
 ## bash will fail at interpreting that code.
+## @note
+## The extglob shell option will be enabled when loading the
+## library. Disabling it afterwards will make the library execution
+## fail.
 #
 ## @par Usage
 ## Use the argsparse_use_option() function to declare your options with
@@ -568,6 +572,7 @@ __argsparse_usage_short_line_management() {
 }
 
 ## @fn argsparse_usage_short()
+## @brief Print a short description of the program syntax.
 ## @details Generate and print the "short" description of the program
 ## usage.
 ## @ingroup ArgsparseUsage
@@ -635,6 +640,7 @@ __argsparse_describe_parameters() {
 }
 
 ## @fn argsparse_usage_long()
+## @brief Fully describe and program and its options to the end-user.
 ## @details This function generates and prints the "long" description
 ## of the program usage. Print all options along with their
 ## descriptions provided to argsparse_use_option().
@@ -742,7 +748,7 @@ argsparse_usage() {
 ## by argsparse_parse_options() on error or if --help option provided by
 ## user on the command line. It can easily be overwritten if it does not
 ## suits your needs.
-## @return This function makes an @b exit with value 1
+## @return This function makes an @b exit with code 1
 ## @ingroup ArgsparseUsage
 usage() {
 	argsparse_usage
@@ -768,7 +774,7 @@ set_option_help() {
 ## is not declared, in which case function will return an error.
 ## @param option an option name.
 ## @retval 1 if array has not been declared
-## @retval 0 else. Array name will written to stdout.
+## @retval 0 else. Array name will be written to stdout.
 __argsparse_values_array_identifier() {
 	local option=$1
 	local array="option_$(argsparse_option_to_identifier "$option")_values"
@@ -973,7 +979,7 @@ __argsparse_allow_no_argument=no
 ## lines. Default says "no argument triggers usage".
 ## @param string if (case-insensitive) "yes", "true" or "1", the value
 ## is considered as affirmative. Anything else is a negative value.
-## @return 0 unless there's more than one parameter (or none).
+## @retval 0 unless there's more than one parameter (or none).
 argsparse_allow_no_argument() {
 	[[ $# -eq 1 ]] || return 1
 	local param=$1
@@ -990,11 +996,12 @@ argsparse_allow_no_argument() {
 ## @fn argsparse_parse_options()
 ## @brief Parse program options.
 ## @details This function will make option parsing happen, and if an error
-## is detected, the usage function will be invoked, if it has been
+## is detected, the usage() function will be invoked, if it has been
 ## defined. If it's not defined, the function will return 1.
 ## Parse options, and return if everything went fine.
 ## @param parameters... should be the program arguments.
-## @return 0 as if no error is encountered during option parsing.
+## @retval 0 if the whole option parsing process went fine.
+## @retval 1 if an error is encoutered and usage does not perform an exit.
 argsparse_parse_options() {
 	unset __argsparse_tmp_identifiers || :
 	__argsparse_parse_options_no_usage "$@" && return
