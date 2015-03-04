@@ -26,8 +26,8 @@ tarballs at the following URL:
 ### RPMS
 
 Though you can build your own package using the provided spec file, a
-bash-argsparse is actually available in fedora repositories, for all
-releases from fedora 19 to rawhide.
+bash-argsparse package is currently available in fedora repositories,
+for all releases from fedora 19 to rawhide.
 
 ### Features
 
@@ -96,7 +96,6 @@ Known limitations (or bugs)
 
 * You cannot have a short option without a long option.
 * Too few verifications about property values are made.
-* Compliance against some bash settings like errexit has not (yet)
-  been proved, but is wished.
+* Compliance with errexit is not supported (yet).
 * Compliance with Non-bind versions of the "host" command has not been
   tested.
