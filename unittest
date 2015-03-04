@@ -4,8 +4,6 @@
 #
 #
 
-PATH="$PATH:."
-
 PS4='+ ${FUNCNAME:-main}${LINENO:+:$LINENO}>'
 
 # If it works with failglob and nounset, it will work without.
