@@ -68,7 +68,7 @@
 ## The "something" string must only contains ASCII
 ## letters/numbers/dash/underscore characters.
 ##
-## @par
+## @note
 ## What is referred later as "option" or "option name" (or even "long
 ## option name") is the optstring without the ':' and '=' characters.
 ##
@@ -207,7 +207,7 @@
 ## argsparse_parse_options() return with non-zero status, 'usage' will
 ## be automatically called.
 ##
-## @par
+## @note
 ## This library automatically defines a default 'usage' function,
 ## which may be removed or overridden by the sourcing program
 ## afterwards.
