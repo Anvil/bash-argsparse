@@ -82,25 +82,25 @@
 ## 	 An hidden option will not be shown in usage.
 ##
 ## @li "mandatory" @n
-##	 An option marked as mandatory is required on the command line. If
-##   a mandatory option is omited by the user, usage will be triggered
-##   by argsparse_parse_options().
+## 	 An option marked as mandatory is required on the command line. If
+##   a mandatory option is omited by the user, usage() will be
+##   triggered by argsparse_parse_options().
 ##
 ## @li "value" @n
 ##   On the command line, the option will require a value.
-##	 Same effect if you end your optstring with a ':' char.
+## 	 Same effect if you end your optstring with a ':' char.
 ##
 ## @li "default:<defaultvalue>" @n
-##	 The default value for the option.
+## 	 The default value for the option.
 ##
 ## @li "short:<char>" @n
 ##   The short single-letter equivalent of the option.
 ##
 ## @li "type:<typename>" @n
 ##   Give a type to the option value. User input value will be checked
-##	 against built-in type verifications _or_ the
-##	 "check_type_<typename>" function. You cannot override a built-in
-##	 type. Built-in types are:
+## 	 against built-in type verifications _or_ the
+## 	 "check_type_<typename>" function. You cannot override a built-in
+## 	 type. Built-in types are:
 ##
 ## @code
 ##   file directory pipe terminal socket link char unsignedint uint
@@ -199,8 +199,9 @@
 ##
 ###
 ## @par The "usage()" function
-## If a 'usage' function is defined, and shall parse_option return with
-## non-zero status, 'usage' will be automatically called.
+## If a 'usage' function is defined, and shall
+## argsparse_parse_options() return with non-zero status, 'usage' will
+## be automatically called.
 ##
 ## @par
 ## This library automatically defines a default 'usage' function,
@@ -214,8 +215,8 @@
 ##
 ## @li If there exists an array named "option_<optionname>_values" and
 ##   the user-given value doesn't belong to that array, then the
-##   argsparse_parse_options function immediately returns with non-zero
-##   status, triggering 'usage'.
+##   argsparse_parse_options() function immediately returns with
+##   non-zero status, triggering 'usage'.
 ##
 ## @li If the "option_<optionname>_values" array does not exist, but if
 ##   the option has a type property field, then the value format will
@@ -750,8 +751,8 @@ usage() {
 
 ## @fn set_option_help()
 ## @brief Default trigger for --help option.
-## @details will actually only call "usage" function.
-## @return whatever usage returns.
+## @details Will actually only call usage().
+## @return Whatever usage() returns.
 ## @ingroup ArgsparseUsage
 set_option_help() {
 	# This is the default hook for the --help option.
@@ -987,7 +988,7 @@ argsparse_allow_no_argument() {
 }
 
 ## @fn argsparse_parse_options()
-## @brief parse program options.
+## @brief Parse program options.
 ## @details This function will make option parsing happen, and if an error
 ## is detected, the usage function will be invoked, if it has been
 ## defined. If it's not defined, the function will return 1.
@@ -1049,7 +1050,7 @@ __argsparse_parse_options_check_exclusions() {
 ## @brief Resolv option-specific setter function and invoke it.
 ## @details Check if a user-defined option setting function
 ## (set_option_<optionname>) has been defined or if the generic
-## argsparse_set_option function is to be used. Then invoke the that
+## argsparse_set_option() function is to be used. Then invoke the that
 ## function with the option name as first parameter. If a value for
 ## the option is involved, it is passed as a second parameter.
 ## @param option an option name.
@@ -1422,7 +1423,7 @@ __argsparse_check_declaration_conflict() {
 ## @retval 0 if no error is encountered.
 ## @retval 2 if option name is bad (a message will be printed)
 ## @retval 3 if option name conflicts with another option (a message
-## will be printed.
+## will be printed)
 ## @retval 4 if a wrong property name is provided. (a message will be
 ## printed)
 argsparse_use_option() {
