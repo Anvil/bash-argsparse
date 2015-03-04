@@ -25,7 +25,9 @@ tarballs at the following URL:
 
 ### RPMS
 
-Though you can build your own package using the provided spec file, a bash-argsparse is actually available in fedora repositories, for all releases from 19 to rawhide.
+Though you can build your own package using the provided spec file, a
+bash-argsparse is actually available in fedora repositories, for all
+releases from fedora 19 to rawhide.
 
 ### Features
 
