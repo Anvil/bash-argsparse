@@ -39,9 +39,9 @@
 ## This library is implemented for bash version 4. Prior versions of
 ## bash will fail at interpreting that code.
 ## @note
-## The extglob shell option will be enabled when loading the
-## library. Disabling it afterwards will make the library execution
-## fail.
+## The extglob shell option will be enabled and posix mode will be
+## disabled when loading the library. Changing those settings
+## afterwards will make the library execution fail.
 #
 ## @par Usage
 ## Use the argsparse_use_option() function to declare your options with
@@ -282,6 +282,7 @@ declare -r ARGSPARSE_VERSION=1.6.2
 
 # Enable required features
 shopt -s extglob
+set +o posix
 
 # This is an associative array. It should contains records of the form
 # "something" -> "Some usage description string".
