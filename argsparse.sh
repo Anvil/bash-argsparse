@@ -294,6 +294,10 @@ set +o posix
 declare -A __argsparse_options_descriptions=()
 
 ## @brief The name of the program currently using argsparse.
+## @details Automatically set by argsparse at load time, it contains
+## the basename (path-less but with extension, if any) of the main
+## script. Used internally to print error messages and by
+## usage-related functions, but can be used by the loading script.
 ## @hideinitializer
 declare -r argsparse_pgm=${0##*/}
 
@@ -614,6 +618,13 @@ argsparse_usage_short() {
 	printf -- "%s\n" "$current_line"
 }
 
+## @var Array __argsparse_parameters_description
+## @private
+## @brief Internal use only.
+## @ingroup ArgsparseUsage
+# @details Used by argsparse_describe_parameters() to store
+# non-option positionnal parameters short descriptions and by
+# argsparse_usage_short() to print them to end-users.
 declare -a __argsparse_parameters_description
 
 ## @fn argsparse_describe_parameters()
@@ -1385,7 +1396,7 @@ argsparse_has_option_property() {
 declare -A __argsparse_short_options=()
 
 # @fn __argsparse_optstring_has_short()
-# @brief Internal use.
+# @brief Internal use only.
 # @details Prints the short option string suitable for getopt command
 # line.
 # @param optstring an optstring
