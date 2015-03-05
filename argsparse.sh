@@ -326,7 +326,7 @@ argsparse_minimum_parameters() {
 ## @details The default maximum parameters requirement for command
 ## line. "Should be enough for everyone".
 ## @ingroup ArgsparseParameter
-declare -i __argsparse_maximum_parameters=100000
+declare -i __argsparse_maximum_parameters=1000000
 
 ## @fn argsparse_maximum_parameters()
 ## @brief Set the maximum number of non-option parameters expected on
@@ -615,9 +615,27 @@ argsparse_usage_short() {
 
 declare -a __argsparse_parameters_description
 
-__argsparse_describe_parameters() {
+## @fn argsparse_describe_parameters()
+## @brief Describe non-option positionnal parameters.
+## @details 
+## This function has currently 2 purposes:
+## @li enhance the "short" usage program description (see
+## argsparse_usage_short())
+## @li compute the minimum and maximum numbers of non-option
+## positionnal parameters and will overwrite previous settings using
+## argsparse_minimum_parameters() and argsparse_maximum_parameters().
+##
+## @param param... a list of label describing positionnal
+## parameters. These labels can have special forms such as:
+##   @li "label?" a single optional non-repeatable parameter
+##   @li "label+" a non-empty list of parameters
+##   @li "label*" a potentially-empty list of parameters
+##   @li "label" a single non-optional non-repeatable parameter
+## @retval 0
+argsparse_describe_parameters() {
 	[[ $# -eq 0 ]] && return
 	local param last name
+	local -i min=0 max=0
 	__argsparse_parameter_description=( "[--]" )
 	for param in "$@"
 	do
@@ -625,18 +643,26 @@ __argsparse_describe_parameters() {
 		last=${param#$name}
 		case "$last" in
 			'?')
+				: maximum param $((++max))
 				__argsparse_parameters_description+=( "[ $name ]" )
 				;;
 			'*')
+				max=1000000
 				__argsparse_parameters_description+=( "[ $name ... ]" )
 				;;
 			+)
+				max=1000000
+				: minimum param $((++min))
 				__argsparse_parameters_description+=( "$name [ $name ... ]" )
 				;;
 			*)
+				: maximum param $((++max))
+				: minimum param $((++min))
 				__argsparse_parameters_description+=( "$param" )
 		esac
 	done
+	argsparse_minimum_parameters "$min"
+	argsparse_maximum_parameters "$max"
 }
 
 ## @fn argsparse_usage_long()
