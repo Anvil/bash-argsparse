@@ -637,7 +637,7 @@ argsparse_describe_parameters() {
 	[[ $# -eq 0 ]] && return
 	local param last name
 	local -i min=0 max=0
-	__argsparse_parameter_description=( "[--]" )
+	__argsparse_parameters_description=( "[--]" )
 	for param in "$@"
 	do
 		name=${param%?}
