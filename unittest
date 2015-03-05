@@ -462,4 +462,6 @@ then
 	} 2>&1
 fi
 
+printf "Completed in %d seconds.\n" "$SECONDS"
+
 exit "$exit_code"
