@@ -1,6 +1,6 @@
 Summary: An high level argument parsing library for bash
 Name: bash-argsparse
-Version: 1.6.2
+Version: 1.7
 Release: 1%{?dist}
 License: WTFPL
 URL: https://github.com/Anvil/bash-argsparse
@@ -43,6 +43,9 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 
 
 %changelog
+* Thu Mar 5 2015 Dams <bash-argsparse[AT]livna.org> - 1.7-1
+- Version 1.7
+
 * Wed Jan 28 2015 Dams <bash-argsparse[AT]livna.org> - 1.6.2-1
 - Version 1.6.2
 - Dropped fedora patch (included upstream)
@@ -53,11 +56,11 @@ ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
 * Wed Oct 15 2014 Dams <bash-argsparse[AT]livna.org> - 1.6.1-2
 - Added patch to fix some unittest issues
 
-* Thu Oct  9 2014 Dams <bash-argsparse[AT]livna.org> - 1.6.1-1
+* Thu Oct 9 2014 Dams <bash-argsparse[AT]livna.org> - 1.6.1-1
 - Version 1.6.1
 - Fixed changelog names
 
-* Thu Oct  9 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-4
+* Thu Oct 9 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-4
 - Update host path in *Requires tags.
 
 * Wed Oct 8 2014 Dams <bash-argsparse[AT]livna.org> - 1.6-3

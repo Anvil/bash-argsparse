@@ -1,25 +1,31 @@
+bash-argsparse (1.7) unstable; urgency=low
+
+  * Version 1.7
+
+ -- Damien Nadé <bash-argsparse@livna.org>  Thu, 5 Mar 2015 12:20:00 +0100
+
 bash-argsparse (1.6.2) unstable; urgency=low
 
   * Version 1.6.2
 
- -- Damien Nade <bash-argsparse@livna.org>  Thu, 22 Jan 2015 16:35:00 +0100
+ -- Damien Nadé <bash-argsparse@livna.org>  Thu, 22 Jan 2015 16:35:00 +0100
 
 bash-argsparse (1.6.1) unstable; urgency=low
 
   * Version 1.6.1
 
- -- Damien Nade <bash-argsparse@livna.org>  Thu, 10 Oct 2014 19:40:00 +0200
+ -- Damien Nadé <bash-argsparse@livna.org>  Thu, 10 Oct 2014 19:40:00 +0200
 
 bash-argsparse (1.6) unstable; urgency=low
 
   * Version 1.6
   * Doxygen documentation
 
- -- Damien Nade <bash-argsparse@livna.org>  Mon, 13 Jan 2014 10:31:12 +0100
+ -- Damien Nadé <bash-argsparse@livna.org>  Mon, 13 Jan 2014 10:31:12 +0100
 
 bash-argsparse (1.5) unstable; urgency=low
 
   * Initial packaging
 
- -- Damien Nade <bash-argsparse@livna.org>  Mon, 18 Mar 2013 12:39:40 +0200
+ -- Damien Nadé <bash-argsparse@livna.org>  Mon, 18 Mar 2013 12:39:40 +0200
 
