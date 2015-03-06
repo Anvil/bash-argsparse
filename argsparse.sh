@@ -961,7 +961,6 @@ argsparse_check_option_type() {
 			;;
 		date)
 			date --date "$value"  >/dev/null 2>&1
-			return 
 			;;
 		*)
 			# Invoke user-defined type-checking function if available.
