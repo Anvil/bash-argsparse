@@ -678,7 +678,7 @@ argsparse_describe_parameters() {
 }
 
 ## @fn argsparse_usage_long()
-## @brief Fully describe and program and its options to the end-user.
+## @brief Fully describe the program syntax and options to the end-user.
 ## @details This function generates and prints the "long" description
 ## of the program usage. Print all options along with their
 ## descriptions provided to argsparse_use_option().
