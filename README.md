@@ -27,7 +27,8 @@ tarballs at the following URL:
 
 Though you can build your own package using the provided spec file, a
 bash-argsparse package is currently available in fedora repositories,
-for all releases from fedora 19 to rawhide.
+for all releases from fedora 19 to rawhide. Ditto for RHEL/Centos 6 &
+7, through the EPEL repository.
 
 ### Features
 
@@ -43,7 +44,7 @@ The argsparse library offers to script developpers the following features:
   options, or (sic) non-optional.
 
 
-### Requirements
+### Requirements, Bash settings
 
 A basic argsparse run requires no external commands except the
 quite-common "getopt" command. Some argsparse-built-in type checkings
@@ -52,10 +53,9 @@ to use those types.
 
 Argsparse relies on a lot of bash built-in commands ("printf", "[",
 "read", ...) and internal features such as arrays, associative arrays,
-extended (ksh-like) globbing.
-
-The "extglob" shell option is automatically enabled when loading
-the argsparse library.
+extended (ksh-like) globbing. That's why the "extglob" shell option is
+automatically enabled and posix-mode is automatically disabled when
+loading the argsparse library.
 
 The code has been tested on bash 4.1, 4.2 and 4.3 and is definitely
 not POSIX-compliant.
