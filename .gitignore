@@ -3,3 +3,5 @@ html
 latex
 debian/bash-argsparse
 debian/files
+unittest.log
+
