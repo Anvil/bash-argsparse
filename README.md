@@ -3,8 +3,9 @@ bash-argsparse
 
 An high level argument parsing library for bash.
 
-The purpose is to replace the option-parsing and usage-describing
-functions commonly rewritten in all scripts.
+Inspired, by the python argparse module, bash-argsparse purpose is to
+replace the option-parsing and usage-describing functions commonly
+rewritten in all scripts.
 
 This library is implemented for GNU bash version >= 4.1. Prior
 versions of bash will fail at interpreting that code.
