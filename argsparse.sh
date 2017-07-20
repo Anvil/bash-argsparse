@@ -1030,7 +1030,7 @@ argsparse_allow_no_argument() {
 	esac
 }
 
-if [[ $ARGSPARSE_COMPLETION_MODE ]]
+if [[ ${ARGSPARSE_COMPLETION_MODE-} ]]
 then
 	alias argsparse_parse_options='return 0 2>/dev/null || : '
 else
