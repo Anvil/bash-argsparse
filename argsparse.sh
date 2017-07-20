@@ -1030,6 +1030,10 @@ argsparse_allow_no_argument() {
 	esac
 }
 
+if [[ $ARGSPARSE_COMPLETION_MODE ]]
+then
+	alias argsparse_parse_options='return 0 2>/dev/null || : '
+else
 ## @fn argsparse_parse_options()
 ## @brief Parse program options.
 ## @details This function will make option parsing happen, and if an error
@@ -1039,14 +1043,14 @@ argsparse_allow_no_argument() {
 ## @param parameters... should be the program arguments.
 ## @retval 0 if the whole option parsing process went fine.
 ## @retval 1 if an error is encoutered and usage does not perform an exit.
-argsparse_parse_options() {
-	unset __argsparse_tmp_identifiers || :
-	__argsparse_parse_options_no_usage "$@" && return
-	# Something went wrong, invoke usage function, if defined.
-	declare -f usage >/dev/null 2>&1 && usage
-	return 1
-}
-
+	argsparse_parse_options() {
+		unset __argsparse_tmp_identifiers || :
+		__argsparse_parse_options_no_usage "$@" && return
+		# Something went wrong, invoke usage function, if defined.
+		declare -f usage >/dev/null 2>&1 && usage
+		return 1
+	}
+fi
 
 __argsparse_parse_options_prepare_exclude() {
 	# Check for all "exclude" properties, and fill "exclusions"
