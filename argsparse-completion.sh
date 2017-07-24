@@ -98,7 +98,7 @@ _argsparse_complete() {
 	local cur prev words cword split
 	_init_completion -s || return
 	local complete_type complete_values
-	{ read complete_type ; complete_values=$(cat) ;} \
+	{ read complete_type ; complete_values=$(< /dev/stdin) ;} \
 	  < <(__argsparse_complete "${words[0]}")
 	COMPREPLY=(	$(compgen "$complete_type" "$complete_values" -- "$cur" ) )
 }
