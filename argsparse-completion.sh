@@ -34,7 +34,7 @@ __argsparse_complete_printf() {
 __argsparse_complete_value() {
 	local option=$1
 	local array option_type
-	local values
+	local -a values
 	if array=$(__argsparse_values_array_identifier "$option")
 	then
 		values=( ${!array} )
