@@ -1093,6 +1093,18 @@ __argsparse_parse_options_check_exclusions() {
 	return 1
 }
 
+## @fn argsparse_short_to_long()
+## @brief
+## @param char a short option letter
+## @return if found, the long option name matching given short option
+## letter.
+argsparse_short_to_long() {
+	[[ $# -eq 1 ]] || return 1
+	local char=$1
+	local long=${__argsparse_short_options[$char]}
+	[[ -n "$long" ]] && printf %s "$long"
+}
+
 ## @fn __argsparse_set_option()
 ## @private
 ## @brief Resolv option-specific setter function and invoke it.
@@ -1136,7 +1148,7 @@ __argsparse_parse_options_no_usage() {
 	# Be careful, the function is (too) big.
 
 	local long short getopt_temp next_param set_hook option_type
-	local next_param_identifier exclude value
+	local next_param_identifier exclude value char
 	local -a longs_array
 	local -A exclusions
 	# The getopt parameters.
@@ -1232,18 +1244,17 @@ __argsparse_parse_options_no_usage() {
 		# matching long name.
 		if [[ "$next_param" = -[!-] ]]
 		then
-			next_param=${next_param#-}
-			if [[ -z "${__argsparse_short_options[$next_param]}" ]]
+			char=${next_param#-}
+			if ! next_param=$(argsparse_short_to_long "$char")
 			then
 				# Short option without equivalent long. According to
 				# current implementation, this should be considered as
 				# a bug.
 				printf >&2 \
 					"%s: -%s: option doesnt have any matching long option." \
-					"$argsparse_pgm" "$next_param"
+					"$argsparse_pgm" "$char"
 				return 1
 			fi
-			next_param=${__argsparse_short_options[$next_param]}
 		else
 			# Wasnt a short option. Just strip the leading dash.
 			next_param=${next_param#--}
