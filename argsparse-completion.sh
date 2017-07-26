@@ -74,7 +74,11 @@ __argsparse_complete() {
 		longs=( "${!__argsparse_options_descriptions[@]}" )
 		longs=( "${longs[@]/#/--}" )
 		option=${prev#--}
-		if __argsparse_index_of "$prev" "${longs[@]}" >/dev/null && \
+		if __argsparse_index_of -- "${words[@]:0:${#words[@]}-1}" >/dev/null
+		then
+			# Complete positionnal arguments
+			__argsparse_compgen -A file
+		elif __argsparse_index_of "$prev" "${longs[@]}" >/dev/null && \
 			  argsparse_has_option_property "$option" value
 		then
 			__argsparse_complete_value "$option"
