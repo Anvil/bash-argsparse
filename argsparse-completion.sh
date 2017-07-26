@@ -27,8 +27,8 @@
 #########
 #
 
-__argsparse_complete_printf() {
-	printf -- '%s\n%s' "$@"
+__argsparse_compgen() {
+	compgen "$@" -- "$cur"
 }
 
 __argsparse_complete_value() {
@@ -38,35 +38,35 @@ __argsparse_complete_value() {
 	if array=$(__argsparse_values_array_identifier "$option")
 	then
 		values=( ${!array} )
-		printf '%s\n%s' -W "${values[*]}"
+		__argsparse_compgen -W "${values[*]}"
 	elif option_type=$(argsparse_has_option_property "$option" type)
 	then
 		case "$option_type" in
 			file|pipe|socket|link)
-				printf -- '%s\n%s' -A file
+				__argsparse_compgen -A file
 				;;
 			directory|group)
-				printf -- '%s\n%s' -A "$option_type"
+				__argsparse_compgen -A "$option_type"
 				;;
 			username)
-				printf -- '%s\n%s' -A user
+				__argsparse_compgen -A user
 				;;
 			host|hostname)
-				printf -- '%s\n%s' -A hostname
+				__argsparse_compgen -A hostname
 				;;
 			hexa)
 				values=( "$cur"{a..f} )
 				;;&
 			int|hexa)
 				values+=( "$cur"{0..9} )
-				printf -- '%s\n%s' -W "${values[*]}"
+				__argsparse_compgen -W "${values[*]}"
 				;;
 		esac
 	fi
 }
 
 __argsparse_complete() {
-	local script=$1
+	local script=${words[0]}
 	(
 		set +o posix
 		ARGSPARSE_COMPLETION_MODE=1
@@ -85,7 +85,7 @@ __argsparse_complete() {
 					shorts=( "${shorts[@]/#/-}" )
 					;;&
 				""|-*)
-					printf -- '%s\n%s' -W "${shorts[*]} ${longs[*]}"
+					__argsparse_compgen -W "${shorts[*]} ${longs[*]}"
 					;;
 				*)
 					;;
@@ -97,10 +97,7 @@ __argsparse_complete() {
 _argsparse_complete() {
 	local cur prev words cword split
 	_init_completion -s || return
-	local complete_type complete_values
-	{ read complete_type ; complete_values=$(< /dev/stdin) ;} \
-	  < <(__argsparse_complete "${words[0]}")
-	COMPREPLY=(	$(compgen "$complete_type" "$complete_values" -- "$cur" ) )
+	COMPREPLY=(	$(__argsparse_complete) )
 }
 
 complete -F _argsparse_complete 1-basics 2-values 3-cumulative-options 4-types 5-custom-types 6-properties 7-value-checking 8-setting-hook 9-misc
