@@ -96,10 +96,10 @@ __argsparse_complete() {
 		then
 			# Complete positionnal arguments
 			__argsparse_compgen -A file
-		elif __argsparse_index_of "$prev" "${longs[@]}" >/dev/null && \
-			  argsparse_has_option_property "$option" value
+		elif long=$(__argsparse_complete_get_long "$prev" "${longs[@]}") && \
+			  argsparse_has_option_property "$long" value
 		then
-			__argsparse_complete_value "$option"
+			__argsparse_complete_value "$long"
 		else
 			case "$cur" in
 				""|-)
