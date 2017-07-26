@@ -65,6 +65,24 @@ __argsparse_complete_value() {
 	fi
 }
 
+__argsparse_complete_get_long() {
+	[[ $# -ge 1 ]] || return 1
+	local word=$1
+	shift
+	local -a longs=( "$@" )
+	local long
+	if [[ $word = -+([!-]) ]] && \
+		long=$(argsparse_short_to_long "${word:${#word}-1}")
+	then
+		printf %s "$long"
+	elif __argsparse_index_of "$word" "${longs[@]}" >/dev/null
+	then
+		printf %s "${word#--}"
+	else
+		return 1
+	fi
+}
+
 __argsparse_complete() {
 	local script=${words[0]}
 	(
