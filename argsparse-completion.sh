@@ -92,6 +92,8 @@ __argsparse_complete() {
 					__argsparse_compgen -W "${shorts[*]} ${longs[*]}"
 					;;
 				*)
+					# Default non-option completion.
+					__argsparse_compgen -A file
 					;;
 			esac
 		fi
