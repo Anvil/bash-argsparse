@@ -28,13 +28,18 @@
 #
 
 __argsparse_compgen() {
+	if [[ -v compgen_prefix ]]
+	then
+		set -- "$@" -P "$compgen_prefix"
+	fi
 	compgen "$@" -- "$cur"
 }
 
 __argsparse_complete_value() {
-	local option=$1
-	local array option_type
+	local option array option_type
 	local -a values
+	option=$(__argsparse_complete_get_long "$prev" "${longs[@]}") && \
+		argsparse_has_option_property "$long" value || return 1
 	if array=$(__argsparse_values_array_identifier "$option")
 	then
 		values=( ${!array} )
@@ -72,15 +77,17 @@ __argsparse_complete_get_long() {
 	local -a longs=( "$@" )
 	local long
 	if [[ $word = -+([!-]) ]] && \
-		long=$(argsparse_short_to_long "${word:${#word}-1}")
+		long=$(argsparse_short_to_long "${word:1:1}") # XXX: change this
 	then
-		printf %s "$long"
+		long=$long
 	elif __argsparse_index_of "$word" "${longs[@]}" >/dev/null
 	then
-		printf %s "${word#--}"
+		long=${word#--}
 	else
 		return 1
 	fi
+	printf %s "$long"
+	argsparse_has_option_property "$long" value
 }
 
 __argsparse_complete() {
@@ -96,12 +103,25 @@ __argsparse_complete() {
 		then
 			# Complete positionnal arguments
 			__argsparse_compgen -A file
-		elif long=$(__argsparse_complete_get_long "$prev" "${longs[@]}") && \
-			  argsparse_has_option_property "$long" value
+		elif long=$(__argsparse_complete_get_long "$prev" "${longs[@]}")
 		then
 			__argsparse_complete_value "$long"
 		else
 			case "$cur" in
+				--?*=*|-[!-]?*)
+					# Complete the --foo=something pattern as if
+					# prev=--foo and cur=something
+					# Complete -fsomething as if prev=-f and cur=something
+					if [[ "$cur" =~ ^((--[^=]+)=)(.*)$ || "$cur" =~ ^((-[^-]))(.*)$ ]]
+					then
+						compgen_prefix=${BASH_REMATCH[1]}
+						option=${BASH_REMATCH[2]}
+						cur=${BASH_REMATCH[3]}
+						long=$(
+							__argsparse_complete_get_long "$option" "${longs[@]}") && \
+							__argsparse_complete_value "$long"
+					fi
+					;;
 				""|-)
 					shorts=( "${!__argsparse_short_options[@]}" )
 					shorts=( "${shorts[@]/#/-}" )
