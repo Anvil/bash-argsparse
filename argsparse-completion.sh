@@ -37,7 +37,7 @@
 
 ## @par Usage
 #
-## In you ~/.bashrc, add the following lines to enable completion for
+## In your ~/.bashrc, add the following lines to enable completion for
 ## all your argsparse-written scripts:
 ##
 ## @code
@@ -48,17 +48,7 @@
 ## @par Required configuration
 #
 ## argsparse-completion relies on a few shell settings:
-
-## @li "expand_aliases" @n
-##   This the expansion of an alias. Aliases are enabled by default in
-## interactive mode.
-##
-## @code
-##   shopt expand_aliases
-## @endcode
-##
-
-##
+#
 ## @li "sourcepath" shell option must be enabled. This should be
 ##   enabled by default, but you can enforce it by running:
 ##
@@ -75,11 +65,13 @@
 ## @endcode
 ##
 ## @par Limitations
-## @li The completed script will be sourced, up to the
-##   argsparse_parse_options function() call. This means the script
-##   should not performed any side effect (like file system alteration
-##   - file creation, ), and should avoid time-consuming tasks up to
-##   this point
+#
+## @li Every time the completion is invoked, the completed script will
+##   be sourced, up to either the argsparse_parse_options() function
+##   call or any the first return top-level statement. This means that
+##   up to this point the script should not have any side effect (like
+##   file system alteration, network connections, ...), and should
+##   avoid time-consuming tasks up to this point.
 ##
 ##
 #
@@ -174,6 +166,8 @@ __argsparse_complete() {
 	(
 		set +o posix
 		ARGSPARSE_COMPLETION_MODE=1
+		shopt -s expand_aliases
+		unalias -a
 		. "$script" 2>/dev/null || return
 		longs=( "${!__argsparse_options_descriptions[@]}" )
 		longs=( "${longs[@]/#/--}" )
