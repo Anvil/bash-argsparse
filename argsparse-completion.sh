@@ -83,8 +83,10 @@
 ## @details This function will just call compgen with given argument,
 ## safely adding $cur in the command line. Also if compgen_prefix is
 ## set, a -P option will be provided to compgen.
+## @note __argsparse_compgen() makes use of the bash-completion
+## standard variables.
 ## @param param... any set of compgen options
-## @return
+## @return compgen output and return code.
 ## @ingroup ArgsparseCompletion
 __argsparse_compgen() {
 	if [[ -v compgen_prefix ]]
@@ -95,15 +97,23 @@ __argsparse_compgen() {
 }
 
 ## @fn __argsparse_complete_value()
-## @brief complete a value
+## @brief Complete the value an option.
+## @details Run compgen with values matching given option. If an array
+## "option_<optionname>_values" exists, complete with its values. Else
+## if option has a type, complete values according to type when
+## possible. Else do nothing.
+## @note __argsparse_complete_value() makes use of the bash-completion
+## standard variables.
+## @param option a long option name.
 ## @ingroup ArgsparseCompletion
 __argsparse_complete_value() {
-	local option array option_type
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	local array option_type
 	local -a values
-	option=$(__argsparse_complete_get_long "$prev" "${longs[@]}") && \
-		argsparse_has_option_property "$long" value || return 1
 	if array=$(__argsparse_values_array_identifier "$option")
 	then
+		# Option accepts an enumeration of values.
 		values=( "${!array}" )
 		__argsparse_compgen -W "${values[*]}"
 	elif option_type=$(argsparse_has_option_property "$option" type)
@@ -133,9 +143,15 @@ __argsparse_complete_value() {
 }
 
 ## @fn __argsparse_complete_get_long()
-## @brief
-## @details
-## @param word
+## @brief Find the option we want to complete.
+## @details If given word parameter is a recognized option, print the
+## matching long option name. Also if "$cur" should be this option
+## value, then return 0.
+## @param word any word.
+## @return the long option matching given parameter.
+## @retval 0 if given word matches an option and if that option
+## accepts a value.
+## @private
 ## @ingroup ArgsparseCompletion
 __argsparse_complete_get_long() {
 	[[ $# -ge 1 ]] || return 1
@@ -146,11 +162,14 @@ __argsparse_complete_get_long() {
 	if [[ $word = -+([!-]) ]] && \
 		long=$(argsparse_short_to_long "${word:1:1}") # XXX: change this
 	then
+		# -<char><something>, char being a recognized short option
+		# which is wrong.
 		long=$long
 	elif __argsparse_index_of "$word" "${longs[@]}" >/dev/null
 	then
 		long=${word#--}
 	else
+		# Unknown option
 		return 1
 	fi
 	printf %s "$long"
@@ -158,8 +177,10 @@ __argsparse_complete_get_long() {
 }
 
 ## @fn __argsparse_complete()
-## @brief
-## @details
+## @brief Completion for the command stored in ${words[0]}.
+## @details Will load the script to complete, and invoke compgen
+## according to context.
+## @retval non-zero if completed command cannot be sourced.
 ## @ingroup ArgsparseCompletion
 __argsparse_complete() {
 	local script=${words[0]}
@@ -174,12 +195,15 @@ __argsparse_complete() {
 		option=${prev#--}
 		if __argsparse_index_of -- "${words[@]:0:${#words[@]}-1}" >/dev/null
 		then
-			# Complete positionnal arguments
+			# We're after the -- parameter, complete positionnal arguments
 			__argsparse_compgen -A file
 		elif long=$(__argsparse_complete_get_long "$prev" "${longs[@]}")
 		then
+			# We're right after an option that accepts a value, so
+			# complete a value.
 			__argsparse_complete_value "$long"
 		else
+			# Complete current token
 			case "$cur" in
 				--?*=*|-[!-]?*)
 					# Complete the --foo=something pattern as if
@@ -213,8 +237,15 @@ __argsparse_complete() {
 }
 
 ## @fn _argsparse_complete()
-## @brief
-## @details
+## @brief The argsparse completion function.
+## @details To enable completion on a script that uses the argsparse
+## library, call the "complete" built-in as following: @n
+## @code
+##     complete -F _argsparse_complete <your script>
+## @endcode
+## @note Technically, this function gets a parameter (the name of the
+## command to complete), but it is ignored.
+## @ingroup ArgsparseCompletion
 _argsparse_complete() {
 	local cur prev words cword split
 	_init_completion -s || return
