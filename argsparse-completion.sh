@@ -148,6 +148,7 @@ __argsparse_complete_value() {
 ## matching long option name. Also if "$cur" should be this option
 ## value, then return 0.
 ## @param word any word.
+## @param long... a list of long options.
 ## @return the long option matching given parameter.
 ## @retval 0 if given word matches an option and if that option
 ## accepts a value.
@@ -159,12 +160,9 @@ __argsparse_complete_get_long() {
 	shift
 	local -a longs=( "$@" )
 	local long
-	if [[ $word = -+([!-]) ]] && \
-		long=$(argsparse_short_to_long "${word:1:1}") # XXX: change this
+	if [[ $word = -[!-] ]]
 	then
-		# -<char><something>, char being a recognized short option
-		# which is wrong.
-		long=$long
+		long=$(argsparse_short_to_long "${word#-}") || return
 	elif __argsparse_index_of "$word" "${longs[@]}" >/dev/null
 	then
 		long=${word#--}
