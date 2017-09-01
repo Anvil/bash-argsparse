@@ -33,7 +33,7 @@
 ## @par Purpose
 #
 ## To automatically enable, for bash-completion users, completion for
-## scripts using the argsparse library.
+## scripts that use the argsparse library.
 
 ## @par Usage
 #
@@ -72,6 +72,9 @@
 ##   up to this point the script should not have any side effect (like
 ##   file system alteration, network connections, ...), and should
 ##   avoid time-consuming tasks up to this point.
+##
+## @li Only a limited set of option types completion are currently
+##   implemented.
 ##
 ##
 #
