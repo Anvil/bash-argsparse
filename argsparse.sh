@@ -1033,7 +1033,7 @@ argsparse_allow_no_argument() {
 if [[ ${ARGSPARSE_COMPLETION_MODE-} ]]
 then
 	shopt progcomp expand_aliases >/dev/null || exit 1
-	alias argsparse_parse_options='return 0 2>/dev/null || : '
+	alias argsparse_parse_options='return 0 2>/dev/null || :'
 else
 ## @fn argsparse_parse_options()
 ## @brief Parse program options.
