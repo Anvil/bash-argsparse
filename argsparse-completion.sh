@@ -252,6 +252,3 @@ _argsparse_complete() {
 	_init_completion -s || return
 	COMPREPLY=(	$(__argsparse_complete) )
 }
-
-complete -F _argsparse_complete 1-basics 2-values 3-cumulative-options 4-types 5-custom-types 6-properties 7-value-checking 8-setting-hook 9-misc
-
