@@ -43,6 +43,7 @@ The argsparse library offers to script developpers the following features:
 * Hook settings
 * Option properties making them excluding each other, aliasing other
   options, or (sic) non-optional.
+* Automatic bash completion generation.
 
 
 ### Requirements, Bash settings
