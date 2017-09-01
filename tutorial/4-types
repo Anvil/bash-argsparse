@@ -11,7 +11,7 @@ argsparse_use_option option1 "An option" value type:int
 
 # Argsparse has a bunch of built-in types. Most of them are self explicit.
 argsparse_use_option file: "A regular file" type:file
-argsparse_use_option directory: "A directory" type:directory
+argsparse_use_option =directory: "A directory" type:directory
 argsparse_use_option pipe: "An on-disk named FIFO" type:pipe
 argsparse_use_option terminal: \
 	"A file descriptor pointing number to a terminal" type:terminal
