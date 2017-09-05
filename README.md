@@ -81,6 +81,9 @@ Content
 ### Testing
 
 Here are the topics covered by scripts in tutorial directory:
+* 0-completion: An automatic bash completion demo for all other
+  tutorial scripts. This script will spawn a preconfigured interactive
+  bash.
 * 1-basics: Bash Argsparse basics
 * 2-values: Options accepting values
 * 3-cumulative-options: How to keep all user-given values
