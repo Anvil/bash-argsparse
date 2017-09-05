@@ -30,16 +30,16 @@ doxygen
 
 %install
 mkdir -p $RPM_BUILD_ROOT/%{_bindir}
-install -m 0755 argsparse.sh $RPM_BUILD_ROOT/%{_bindir}
-ln -s argsparse.sh $RPM_BUILD_ROOT/%{_bindir}/argsparse
+for file in argsparse argsparse-completion; do
+    install -m 0755 "$file.sh" $RPM_BUILD_ROOT/%{_bindir}
+    ln -s "$file".sh $RPM_BUILD_ROOT/%{_bindir}/"$file"
 
 %check
 ./unittest
 
 %files
 %doc tutorial README.md html COPYING
-%{_bindir}/argsparse
-%{_bindir}/argsparse.sh
+%{_bindir}/argsparse*
 
 
 %changelog
