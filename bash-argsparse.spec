@@ -1,6 +1,6 @@
 Summary: An high level argument parsing library for bash
 Name: bash-argsparse
-Version: 1.7
+Version: 1.8
 Release: 1%{?dist}
 License: WTFPL
 URL: https://github.com/Anvil/bash-argsparse
@@ -43,6 +43,9 @@ for file in argsparse argsparse-completion; do
 
 
 %changelog
+* Tue Sep  5 2017 Dams <bash-argsparse[AT]livna.org> - 1.8-1
+- Version 1.8
+
 * Thu Mar 5 2015 Dams <bash-argsparse[AT]livna.org> - 1.7-1
 - Version 1.7
 

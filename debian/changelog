@@ -1,3 +1,9 @@
+bash-argsparse (1.8) unstable; urgency=low
+
+  * Version 1.8
+
+ -- Damien Nadé <bash-argsparse@livna.org>  Tue, 05 Sep 2017 13:57:55 +0200
+
 bash-argsparse (1.7) unstable; urgency=low
 
   * Version 1.7

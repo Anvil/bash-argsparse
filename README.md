@@ -14,7 +14,7 @@ versions of bash will fail at interpreting that code.
 ### Online documentation
 
 Doxygen documentation is available online
-[here](http://argsparse.livna.org/doxygen/1.7/).
+[here](http://argsparse.livna.org/doxygen/1.8/).
 
 
 ### Tarballs

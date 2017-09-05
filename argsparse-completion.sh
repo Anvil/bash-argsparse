@@ -5,7 +5,7 @@
 ## @author Damien Nadé <bash-argsparse@livna.org>
 ## @brief Bash completion for scripts using argsparse library.
 ## @copyright WTFPLv2
-## @version 1.7
+## @version 1.8
 #
 #########
 # License:
