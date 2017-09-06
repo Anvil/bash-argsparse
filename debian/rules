@@ -5,8 +5,9 @@ override_dh_install:
 	rm -R debian/bash-argsparse
 	mkdir -p debian/bash-argsparse/usr/bin
 	for file in argsparse argsparse-completion; do \
-	install -m 0755 "$$file.sh" debian/bash-argsparse/usr/bin
-	ln -s "$$file.sh" debian/bash-argsparse/usr/bin/"$$file"
+	install -m 0755 "$$file.sh" debian/bash-argsparse/usr/bin ; \
+	ln -s "$$file.sh" debian/bash-argsparse/usr/bin/"$$file" ; \
+	done
 
 build:
 	dh build
