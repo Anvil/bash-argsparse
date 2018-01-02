@@ -224,7 +224,7 @@
 ##
 ## @li If the "option_<optionname>_values" array does not exist, but if
 ##   the option has a type property field, then the value format will
-##   be checked agaisnt that type.
+##   be checked against that type.
 ##
 ## @li If a function named "check_value_of_<optionname>" has been
 ##   defined, it will be called with the user-given value as its first
