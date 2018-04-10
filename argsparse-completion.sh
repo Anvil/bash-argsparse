@@ -1,12 +1,6 @@
 #!/bin/bash
 # -*- tab-width: 4; encoding: utf-8; -*-
 #
-## @file
-## @author Damien Nadé <bash-argsparse@livna.org>
-## @brief Bash completion for scripts using argsparse library.
-## @copyright WTFPLv2
-## @version 1.8
-#
 #########
 # License:
 #
@@ -26,17 +20,22 @@
 #
 #########
 #
+## @file
+## @author Damien Nadé <bash-argsparse@livna.org>
+## @brief Bash completion for scripts using argsparse library.
+## @copyright WTFPLv2
+## @version 1.8
 ## @details
 ## @par URL
 ## https://github.com/Anvil/bash-argsparse @n
-#
+##
 ## @par Purpose
-#
+##
 ## To automatically enable, for bash-completion users, completion for
 ## scripts that use the argsparse library.
-
+##
 ## @par Usage
-#
+##
 ## In your ~/.bashrc, add the following lines to enable completion for
 ## all your argsparse-written scripts:
 ##
@@ -44,11 +43,11 @@
 ##     . argsparse-completion.sh
 ##     complete -F _argsparse_complete [ your scripts names ... ]
 ## @endcode
-#
+##
 ## @par Required configuration
-#
+##
 ## argsparse-completion relies on a few shell settings:
-#
+##
 ## @li "sourcepath" shell option must be enabled. This should be
 ##   enabled by default, but you can enforce it by running:
 ##
@@ -65,7 +64,7 @@
 ## @endcode
 ##
 ## @par Limitations
-#
+##
 ## @li Every time the completion is invoked, the completed script will
 ##   be sourced, up to either the argsparse_parse_options() function
 ##   call or any the first return top-level statement. This means that
@@ -77,7 +76,7 @@
 ##   implemented.
 ##
 ##
-#
+##
 ## @defgroup ArgsparseCompletion Bash Completion-related functions.
 
 ## @fn __argsparse_compgen()
