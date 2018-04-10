@@ -1,12 +1,6 @@
 #!/bin/bash
 # -*- tab-width: 4; encoding: utf-8; -*-
 #
-## @file
-## @author Damien Nadé <bash-argsparse@livna.org>
-## @brief Bash Argsparse Library
-## @copyright WTFPLv2
-## @version 1.8
-#
 #########
 # License:
 #
@@ -26,12 +20,17 @@
 #
 #########
 #
+## @file
+## @author Damien Nadé <bash-argsparse@livna.org>
+## @copyright WTFPLv2
+## @version 1.8
+## @brief Bash Argsparse Library
 ## @details
 ## @par URL
 ## https://github.com/Anvil/bash-argsparse @n
-#
+##
 ## @par Purpose
-#
+##
 ## To replace the option-parsing and usage-describing functions
 ## commonly rewritten in all scripts.
 ##
@@ -42,7 +41,7 @@
 ## The extglob shell option will be enabled and posix mode will be
 ## disabled when loading the library. Changing those settings
 ## afterwards will make the library execution fail.
-#
+##
 ## @par Usage
 ## Use the argsparse_use_option() function to declare your options with
 ## their single letter counterparts, along with their description.
@@ -72,7 +71,7 @@
 ## What is referred later as "option" or "option name" (or even "long
 ## option name") is the optstring without the ':' and '=' characters.
 ##
-###
+##
 ##
 ## @par Options may have properties.
 ##
@@ -171,7 +170,7 @@
 ## argsparse_has_option_property() function.
 ## @code argsparse_has_option_property <option> <property> @endcode
 ##
-#
+##
 ## @par Parsing positionnal parameters
 ## After the options are declared, invoke the function
 ## argsparse_parse_options() with the all script parameters. This will
@@ -201,7 +200,7 @@
 ## e.g:
 ## @code argsparse_is_option_set "long-option-name" @endcode
 ##
-###
+##
 ## @par The "usage()" function
 ## If a 'usage' function is defined, and shall
 ## argsparse_parse_options() return with non-zero status, 'usage' will
@@ -211,7 +210,7 @@
 ## This library automatically defines a default 'usage' function,
 ## which may be removed or overridden by the sourcing program
 ## afterwards.
-#
+##
 ##
 ## @par Value setting internal logic
 ## During option parsing, for every option of the form '--optionname'
@@ -248,7 +247,7 @@
 ## All the functions will return with an error (usually a return code
 ## of 1) if called with a wrong number of parameters, and return with
 ## 0 if everything went fine.
-#
+##
 ## @defgroup ArgsparseUsage Calling program usage description message.
 ## @defgroup ArgsparseOptionSetter Setting options values.
 ## @defgroup ArgsparseProperty Options properties handling.
