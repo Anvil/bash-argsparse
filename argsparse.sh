@@ -826,7 +826,7 @@ __argsparse_is_array_declared() {
 	[[ $# -eq 1 ]] || return 1
 	local array_name=$1
 	[[ "$(declare -p "$array_name" 2>/dev/null)" = \
-		"declare -"[aA]" $array_name='("* ]]
+		"declare -"[aA]" $array_name="* ]]
 }
 
 __argsparse_has_array_item() {
