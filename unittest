@@ -301,6 +301,15 @@ cumul_test() {
 	parse_option_wrapper "multiple require (4)" --option3 --option2 --option1
 )
 
+
+(
+	declare -a option_option1_values=(accept)
+	argsparse_use_option option1: ""
+	TEST=failure parse_option_wrapper "accepted values (bad value)" \
+		--option1 foo
+	parse_option_wrapper "accepted values (good value)" --option1 accept
+)
+
 dir=$(mktemp -d)
 file=$(mktemp --tmpdir="$dir")
 declare -A types=(
