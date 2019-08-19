@@ -737,7 +737,7 @@ argsparse_usage_long() {
 			if __argsparse_index_of "$long" \
 				"${!__argsparse_options_default_values[@]}" >/dev/null
 			then
-				printf "${bol}Default: %s.\n" \
+				printf "${bol}Default: %s\n" \
 					"${__argsparse_options_default_values[$long]}"
 			fi
 		fi
