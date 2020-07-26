@@ -444,7 +444,7 @@ fi
 
 if [[ $errors -ne 0 ]]
 then
-	printf "* %* d error(s) encountered. (See above)\n" "$errors"
+	printf "* %d * error(s) encountered. (See above)\n" "$errors"
 	exit_code=1
 else
 	printf "All tests passed.\n"
