@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 tutorial_directory=${BASH_SOURCE[0]%/*}
 
