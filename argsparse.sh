@@ -1436,7 +1436,7 @@ declare -A __argsparse_tmp_identifiers=()
 # argsparse_parse_options().
 
 
-# @fn _argsparse_check_declaration_conflict()
+# @fn __argsparse_check_declaration_conflict()
 # @brief Internal use.
 # @details Check if an option conflicts with another and, if it does,
 # prints the conflicted option.
@@ -1556,12 +1556,12 @@ argsparse_is_option_set() {
 
 
 # @private
-# @fn __max_length()
+# @fn __argsparse_max_length()
 # @details Prints the length of the longest argument _or_ 50.
 # @brief Internal use.
 # @param string... a list of strings
 # @return 0
-__max_length() {
+__argsparse_max_length() {
 	local max=50
 	shift
 	local max_length=0 str
@@ -1581,7 +1581,7 @@ __max_length() {
 ## @retval 0
 argsparse_report() {
 	local option array_name value
-	local length=$(__max_length "${!__argsparse_options_descriptions[@]}")
+	local length=$(__argsparse_max_length "${!__argsparse_options_descriptions[@]}")
 	local -a array options
 
 	if __argsparse_is_array_declared __argsparse_tmp_identifiers
@@ -1617,7 +1617,7 @@ argsparse_report() {
 			fi
 			printf ')\n'
 		else
-			printf '%s\n' no
+			printf 'no\n'
 		fi
 	done
 }
