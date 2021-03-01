@@ -81,37 +81,54 @@
 ##
 ## The currently supported properties are:
 ##
-## @li "hidden" @n
+## - "hidden" @n
 ## 	 An hidden option will not be shown in usage.
 ##
-## @li "mandatory" @n
+## - "mandatory" @n
 ## 	 An option marked as mandatory is required on the command line. If
 ##   a mandatory option is omited by the user, usage() will be
 ##   triggered by argsparse_parse_options().
 ##
-## @li "value" @n
+## - "value" @n
 ##   On the command line, the option will require a value.
 ## 	 Same effect if you end your optstring with a ':' char.
 ##
-## @li "default:<defaultvalue>" @n
+## - "default:<defaultvalue>" @n
 ## 	 The default value for the option.
 ##
-## @li "short:<char>" @n
+## - "short:<char>" @n
 ##   The short single-letter equivalent of the option.
 ##
-## @li "type:<typename>" @n
+## - "type:<typename>" @n
 ##   Give a type to the option value. User input value will be checked
 ## 	 against built-in type verifications _or_ the
 ## 	 "check_type_<typename>" function. You cannot override a built-in
 ## 	 type. Built-in types are:
+##   - file
+##   - directory
+##   - pipe
+##   - terminal
+##   - socket
+##   - link
+##   - char
+##   - unsignedint
+##   - uint
+##   - integer
+##   - int
+##   - hexa
+##   - ipv4
+##   - ipv6
+##   - ip
+##   - hostname
+##   - host
+##   - portnumber
+##   - port
+##   - username
+##   - group
+##   - date
+##   .
 ##
-## @code
-##   file directory pipe terminal socket link char unsignedint uint
-##   integer int hexa ipv4 ipv6 ip hostname host portnumber port
-##   username group date
-## @endcode
-##
-## @li "exclude:<option> <option>" @n
+## - "exclude:<option> <option>" @n
 ##   The exclude property value is a space-separated list of other
 ##   options. User wont be able to provided two mutually exclusive
 ##   options on the command line. @n
@@ -123,7 +140,7 @@
 ##   This foo exclude property setting wouldnt make --opt1 and --opt2,
 ##   mutually exclusive though.
 ##
-## @li "alias:<option> <option>" @n
+## - "alias:<option> <option>" @n
 ##   This property allows an option to set multiple other without-value
 ##   options instead. Recursive aliases are permitted but no loop
 ##   detection is made, so be careful. @n
@@ -132,7 +149,7 @@
 ##   Then if the user is doing --opt on the command line, it will be as
 ##   if he would have done --opt1 --opt2
 ##
-## @li cumulative @n
+## - cumulative @n
 ##   Implies 'value'.
 ##   Everytime a cumulative option "optionname" is passed on the
 ##   command line, the value is stored at the end of an array named
@@ -146,7 +163,7 @@
 ##   expand to value1, and ${cumulated_values_opt1[1]} will expand to
 ##   value2.
 ##
-## @li cumulativeset @n
+## - cumulativeset @n
 ##   Exactly like cumulative, except only uniq values are kept. @n
 ##
 ##   e.g: for a script with an opt1 option declared this way:
@@ -157,7 +174,7 @@
 ##   expand to value1, and "${cumulated_values_opt1[1]}" will expand to
 ##   value2. There would be no "${cumulated_values_opt1[2]}" value.
 ##
-## @li "require:<option> <option>" @n
+## - "require:<option> <option>" @n
 ##   Creates a dependency between options. if you declare an option with:
 ##   @code
 ##   argsparse_use_option opt1 "something" require:"opt2 opt3"
@@ -176,9 +193,9 @@
 ## argsparse_parse_options() with the all script parameters. This will
 ## define:
 ##
-## @li program_params, an array, containing all non-option parameters.
+## - program_params, an array, containing all non-option parameters.
 ##
-## @li program_options, an associative array. For each record of the
+## - program_options, an associative array. For each record of the
 ##   array:
 ##   - The key is the long option name.
 ##   - And about values:
@@ -193,6 +210,7 @@
 ##   - If option is cumulative (or cumulativeset), the array record
 ##     value is the number of values passed by the user.
 ##   .
+##
 ## After argsparse_parse_options() invokation, you can check if an
 ## option have was on the command line (or not) using the
 ## argsparse_is_option_set() function. @n
@@ -211,21 +229,20 @@
 ## which may be removed or overridden by the sourcing program
 ## afterwards.
 ##
-##
 ## @par Value setting internal logic
 ## During option parsing, for every option of the form '--optionname'
 ## expecting a value:
 ##
-## @li If there exists an array named "option_<optionname>_values" and
+## - If there exists an array named "option_<optionname>_values" and
 ##   the user-given value doesn't belong to that array, then the
 ##   argsparse_parse_options() function immediately returns with
 ##   non-zero status, triggering 'usage'.
 ##
-## @li If the "option_<optionname>_values" array does not exist, but if
+## - If the "option_<optionname>_values" array does not exist, but if
 ##   the option has a type property field, then the value format will
 ##   be checked against that type.
 ##
-## @li If a function named "check_value_of_<optionname>" has been
+## - If a function named "check_value_of_<optionname>" has been
 ##   defined, it will be called with the user-given value as its first
 ##   positionnal parameter. If check_value_of_<optionname> returns
 ##   with non-zero status, then parse_option immediately returns with
@@ -235,7 +252,7 @@
 ## Also, still during option parsing and for @b every option of the form
 ## "--optionname":
 ##
-## @li After value-checking, if a function named
+## - After value-checking, if a function named
 ##   "set_option_<optionname>" exists, then, instead of directly
 ##   modifying the "program_options" associative array, this function
 ##   is automatically called with 'optionname' as its first
@@ -244,9 +261,9 @@
 ##
 ## @par About functions return values...
 ##
-## All the functions will return with an error (usually a return code
-## of 1) if called with a wrong number of parameters, and return with
-## 0 if everything went fine.
+## All argsparse functions will return with an error (usually a return
+## code of 1) if called with a wrong number of parameters, and return
+## with 0 if everything went fine.
 ##
 ## @defgroup ArgsparseUsage Calling program usage description message.
 ## @defgroup ArgsparseOptionSetter Setting options values.
@@ -524,9 +541,9 @@ argsparse_set_alias() {
 ## @param option The option being set.
 ## @param value the value of the option (optional).
 ## @details This function will be called by argsparse_parse_options()
-## whenever an option is being and no custom setting hook is define
-## for this option. Depending of the properties of the option a more
-## specific setting hook will be called.
+## whenever a given option is being set and no custom setting hook is
+## defined for said option. Depending of the properties of the option,
+## a more specific setting hook will be called.
 ## @ingroup ArgsparseOptionSetter
 argsparse_set_option() {
 	[[ $# -eq 2 || $# -eq 1 ]] || return 1
@@ -628,21 +645,21 @@ declare -a __argsparse_parameters_description
 
 ## @fn argsparse_describe_parameters()
 ## @brief Describe non-option positionnal parameters.
-## @details 
-## This function has currently 2 purposes:
-## @li enhance the "short" usage program description (see
+## @details This function has currently 2 purposes:
+## - enhance the "short" usage program description (see
 ## argsparse_usage_short())
-## @li compute the minimum and maximum numbers of non-option
+## - compute the minimum and maximum numbers of non-option
 ## positionnal parameters and will overwrite previous settings using
 ## argsparse_minimum_parameters() and argsparse_maximum_parameters().
 ##
 ## @param param... a list of label describing positionnal
 ## parameters. These labels can have special forms such as:
-##   @li "label?" a single optional non-repeatable parameter
-##   @li "label+" a non-empty list of parameters
-##   @li "label*" a potentially-empty list of parameters
-##   @li "label" a single non-optional non-repeatable parameter
+## - "label?" a single optional non-repeatable parameter
+## - "label+" a non-empty list of parameters
+## - "label*" a potentially-empty list of parameters
+## - "label" a single non-optional non-repeatable parameter
 ## @retval 0
+## @ingroup ArgsparseUsage
 argsparse_describe_parameters() {
 	[[ $# -eq 0 ]] && return
 	local param last name
@@ -1299,8 +1316,9 @@ __argsparse_parse_options_no_usage() {
 ## @details
 ## After argsparse_parse_options(), it will contain (if no hook is set
 ## for "optionname")
-## @li "optionname" -> "value", if "optionname" accepts a value.
-## @li "optionname" -> "how many times the option has been detected on
+## - "optionname" -> "value", if "optionname" accepts a value.
+## - "optionname" -> "how many times the option has been detected on
+## .
 ## the command line", else.
 declare -A program_options=()
 
@@ -1462,21 +1480,21 @@ __argsparse_check_declaration_conflict() {
 ## @fn argsparse_use_option()
 ## @brief Define a @b new option.
 ## @param optstring an optstring.
-## @param description the option description, for the usage function.
+## @param description the option description, for the usage() function.
 ## @param property... an non-ordered list of keywords. Recognized
 ## property keywords are:
-##   @li mandatory: missing option will trigger usage. If a default
+##   - mandatory: missing option will trigger usage. If a default
 ##     value is given, the option is considered as if provided on
 ##     the command line.
-##   @li hidden: option wont show in default usage function.
-##   @li value: option expects a following value.
-##   @li short:c: option has a single-lettered (c) equivalent.
-##   @li exclude:"option1 [ option2 ... ]" option is not
+##   - hidden: option wont show in default usage function.
+##   - value: option expects a following value.
+##   - short:c: option has a single-lettered (c) equivalent.
+##   - exclude:"option1 [ option2 ... ]" option is not
 ##   compatible with other options option1, option2...
-##   @li cumulative
-##   @li cumulativeset
-##   @li type:sometype
-##   @li The @b last non-keyword parameter will be considered as the
+##   - cumulative
+##   - cumulativeset
+##   - type:sometype
+##   - The @b last non-keyword parameter will be considered as the
 ##     default value for the option. All other parameters and
 ##     values will be ignored. - might be broken / obsolete and broken
 ## @retval 0 if no error is encountered.
