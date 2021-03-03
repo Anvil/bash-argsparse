@@ -10,4 +10,5 @@ matrix:
 language: bash
 
 script:
+  - ./make
   - ./unittest
