@@ -272,15 +272,8 @@ __argsparse_parse_options_no_usage() {
 			# Save program parameters in array
 			program_params=( "$@" )
 
-			# Apply default values here
-			for option in "${!__argsparse_options_default_values[@]}"
-			do
-				if ! argsparse_is_option_set "$option"
-				then
-					argsparse_set_option "$option" \
-						"${__argsparse_options_default_values[$option]}"
-				fi
-			done
+			# Retrieve values from environment and set matching options
+			__argsparse_parse_options_env_and_defaults
 
 			# If some mandatory option have been omited by the user, then
 			# print some error, and invoke usage.
