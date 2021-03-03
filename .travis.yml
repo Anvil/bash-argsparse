@@ -1,11 +1,11 @@
 matrix:
   include:
     - os: linux
-      dist: precise
-    - os: linux
-      dist: trusty
-    - os: linux
       dist: xenial
+    - os: linux
+      dist: bionic
+    - os: linux
+      dist: focal
 
 language: bash
 
