@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+# This is an associative array. It should contains records of the form
+# "something" -> "Some usage description string".
+# The "something" string is referred as the "option name" later in
+# source code and comments.
+## @var AssociativeArray __argsparse_options_descriptions
+## @private
+## @brief Internal use only.
+declare -A __argsparse_options_descriptions=()
+
+
+# @fn __argsparse_check_declaration_conflict()
+# @brief Internal use.
+# @details Check if an option conflicts with another and, if it does,
+# prints the conflicted option.
+# @param option an option name
+# @return True if option *does* conflict with a previously declared
+# option.
+__argsparse_check_declaration_conflict() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	local identifier=$(argsparse_option_to_identifier "$option")
+	local -a identifiers=("${!__argsparse_tmp_identifiers[@]}")
+	local conflict
+	if __argsparse_has_array_item identifiers @ && \
+		   conflict=$(__argsparse_index_of "$identifier" "${identifiers[@]}")
+	then
+		printf %s "${__argsparse_tmp_identifiers[${identifiers[$conflict]}]}"
+		return 0
+	fi
+	__argsparse_tmp_identifiers["$identifier"]=$option
+	return 1
+}
+
+
+## @fn argsparse_use_option()
+## @brief Define a @b new option.
+## @param optstring an optstring.
+## @param description the option description, for the usage() function.
+## @param property... an non-ordered list of keywords. Recognized
+## property keywords are:
+##   - mandatory: missing option will trigger usage. If a default
+##     value is given, the option is considered as if provided on
+##     the command line.
+##   - hidden: option wont show in default usage function.
+##   - value: option expects a following value.
+##   - short:c: option has a single-lettered (c) equivalent.
+##   - exclude:"option1 [ option2 ... ]" option is not
+##   compatible with other options option1, option2...
+##   - cumulative
+##   - cumulativeset
+##   - type:sometype
+##   - The @b last non-keyword parameter will be considered as the
+##     default value for the option. All other parameters and
+##     values will be ignored. - might be broken / obsolete and broken
+## @retval 0 if no error is encountered.
+## @retval 2 if option name is bad (a message will be printed)
+## @retval 3 if option name conflicts with another option (a message
+## will be printed)
+## @retval 4 if a wrong property name is provided. (a message will be
+## printed)
+argsparse_use_option() {
+	[[ $# -ge 2 ]] || return 1
+	local optstring=$1
+	local description=$2
+	shift 2
+	local long short conflict
+	# configure short option.
+	if short=$(__argsparse_optstring_has_short "$optstring")
+	then
+		set -- "short:$short" "$@"
+		optstring=${optstring/=/}
+	fi
+	# --$optstring expect an argument.
+	if [[ "$optstring" = *: ]]
+	then
+		set -- value "$@"
+		long=${optstring%:}
+	else
+		long=$optstring
+	fi
+
+	if [[ "$long" = *[!-0-9a-zA-Z_]* ]]
+	then
+		printf >&2 "%s: %s: bad option name.\n" "$argsparse_pgm" "$long"
+		return 2
+	fi
+
+	if conflict=$(__argsparse_check_declaration_conflict "$long")
+	then
+		printf >&2 "%s: %s: option conflicts with already-declared %s.\n" \
+			"$argsparse_pgm" "$long" "$conflict"
+		return 3
+	fi
+
+	__argsparse_options_descriptions["$long"]=$description
+
+	# Any other parameter to this function should be a property.
+	while [[ $# -ne 0 ]]
+	do
+		if ! argsparse_set_option_property "$1" "$long"
+		then
+			printf >&2 '%s: %s: unknown property.\n' "$argsparse_pgm" "$1"
+			return 4
+		fi
+		shift
+	done
+}
+
+## @fn argsparse_option_description()
+## @brief Prints to stdout the description of given option.
+## @param option an option name.
+## @retval 0 if given option has been previously declared.
+argsparse_option_description() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	[[ -n "${__argsparse_options_descriptions[$option]+yes}" ]] && \
+		printf %s "${__argsparse_options_descriptions[$option]}"
+}

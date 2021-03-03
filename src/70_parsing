@@ -1,0 +1,366 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+## @var AssociativeArray program_options
+## @brief Options values.
+## @details
+## After argsparse_parse_options(), it will contain (if no hook is set
+## for "optionname")
+## - "optionname" -> "value", if "optionname" accepts a value.
+## - "optionname" -> "how many times the option has been detected on
+## .
+## the command line", else.
+declare -A program_options=()
+
+
+## @var Array program_params
+## @brief Positionnal parameters of the script
+## @details
+## After argsparse_parse_options(), it will contain all non-option
+## parameters. (Typically, everything found after the '--')
+declare -a program_params=()
+
+
+## @var AssociativeArray __argsparse_tmp_identifiers
+## @private
+## @brief Internal use
+## @details
+## Used to verify declared options do not conflict. Is unset after
+## argsparse_parse_options() being called.
+declare -A __argsparse_tmp_identifiers=()
+
+
+__argsparse_check_requires() {
+	# @return the number of missing option detected, but this function
+	# actually stops are the first failing *list* of dependencies.
+	local option
+	local requirestring require count=0
+	local -a requires
+	for option in "${!program_options[@]}"
+	do
+		if ! requirestring="$(argsparse_has_option_property "$option" require)"
+		then
+			# No requirement for this option.
+			continue
+		fi
+		read -a requires <<<"$requirestring"
+		for require in "${requires[@]}"
+		do
+			if ! argsparse_is_option_set "$require"
+			then
+				printf >&2 "%s: --%s: requires option --%s.\n" \
+					"$argsparse_pgm" "$option" "$require"
+				: $((count++))
+			fi
+		done
+		[[ "$count" -ne 0 ]] && return "$count"
+	done
+	return 0
+}
+
+__argsparse_check_missing_options() {
+	# @retval 0 if all mandatory options have a value in
+	# program_options associative array.
+	local option count=0
+	for option in "${!__argsparse_options_descriptions[@]}"
+	do
+		argsparse_has_option_property "$option" mandatory || continue
+		# If option has been given, just iterate.
+		argsparse_is_option_set "$option" && continue
+		printf >&2 "%s: --%s: option is mandatory.\n" \
+			"$argsparse_pgm" "$option"
+		: $((count++))
+	done
+	[[ "$count" -eq 0 ]]
+}
+
+
+__argsparse_parse_options_prepare_exclude() {
+	# Check for all "exclude" properties, and fill "exclusions"
+	# associative array, which should have been declared in
+	# __argsparse_parse_options_no_usage.
+	local option exclude excludestring
+	local -a excludes
+	for option in "${!__argsparse_options_descriptions[@]}"
+	do
+		excludestring=$(argsparse_has_option_property "$option" exclude) || \
+			continue
+		exclusions["$option"]+="${exclusions["$option"]:+ }$excludestring"
+		# Re-split the string. (without involving anything else)
+		read -a excludes <<<"$excludestring"
+		for exclude in "${excludes[@]}"
+		do
+			exclusions["$exclude"]+="${exclusions["$exclude"]:+ }$option"
+		done
+	done
+}
+
+
+__argsparse_parse_options_check_exclusions() {
+	# Check if two options presents on the command line are mutually
+	# exclusive. Prints the "other" option if it's the case.
+	# @param an option
+	# @return 0 if the given option has actually excluded by annother
+	# already-given option.
+	[[ $# -eq 1 ]] || return 1
+	local new_option=$1
+	local option
+
+	for option in "${!program_options[@]}"
+	do
+		if [[ "${exclusions["$option"]-}" =~ ^(.* )?"$new_option"( .*)?$ ]]
+		then
+			printf %s "$option"
+			return 0
+		fi
+	done
+	return 1
+}
+
+
+## @fn __argsparse_set_option()
+## @private
+## @brief Resolv option-specific setter function and invoke it.
+## @details Check if a user-defined option setting function
+## (set_option_<optionname>) has been defined or if the generic
+## argsparse_set_option() function is to be used. Then invoke the that
+## function with the option name as first parameter. If a value for
+## the option is involved, it is passed as a second parameter.
+## @param option an option name.
+## @return the setter function return code
+## @ingroup ArgsparseOptionSetter
+__argsparse_set_option() {
+	[[ $# -eq 1 || $# -eq 2 ]] || return 1
+	local option=$1
+	local set_hook identifier
+	[[ $# -ne 2 ]] || local value=$2
+	# The "identifier string" matching next_param, suitable for
+	# variable or function names.
+	identifier="$(argsparse_option_to_identifier "$option")"
+	# If user has defined a specific setting hook for given the
+	# option, then use it, else use default standard
+	# option-setting function.
+	if declare -f "set_option_$identifier" >/dev/null 2>&1
+	then
+		set_hook="set_option_$identifier"
+	else
+		set_hook=argsparse_set_option
+	fi
+	# Invoke setting hook, and if it returns some non-zero status,
+	# send the user back to usage, if declared, and return with error.
+	# The specific $value substitution, here, is to distinguish an
+	# empty value from a no-value.
+	"$set_hook" "$option" ${value+"$value"}
+}
+
+
+## @fn __argsparse_parse_options_valuecheck()
+## @private
+## @brief Check a value given to an option.
+## @details If an enumeration has been defined for the option, check
+## against that. If there's no enumeration, but option has a type
+## property, then check against the type. In the end, check against
+## check_value_of_<option> function, if it's been defined.
+## @param option an option name.
+## @param value anything.
+## @retval 0 if value is correct for given option.
+## @ingroup ArgsparseOptionTyping
+__argsparse_parse_options_valuecheck() {
+	[[ $# -eq 2 ]] || return 1
+	local option=$1
+	local value=$2
+	local identifier possible_values option_type
+	identifier="$(argsparse_option_to_identifier "$option")"
+	if possible_values=$(__argsparse_values_array_identifier "$option")
+	then
+		__argsparse_index_of "$value" "${!possible_values}" >/dev/null || \
+			return 1
+	elif option_type=$(argsparse_has_option_property "$option" type)
+	then
+		argsparse_check_option_type "$option_type" "$value" || return 1
+	fi
+	if declare -f "check_value_of_$identifier" >/dev/null 2>&1
+	then
+		"check_value_of_$identifier" "$value" || return 1
+	fi
+	return 0
+}
+
+## @fn __argsparse_parse_options_no_usage()
+## @brief Parse options without triggering usage
+__argsparse_parse_options_no_usage() {
+	# This function re-set program_params array values. This function
+	# will also modify the program_options associative array.
+	# If any error happens, this function will return 1.
+
+	# Be careful, the function is (too) big.
+
+	local long short getopt_temp next_param set_hook option_type
+	local next_param_identifier exclude value char
+	local -a longs_array
+	local -A exclusions
+	# The getopt parameters.
+	local longs shorts option
+
+	# No argument sends back to usage, if defined.
+	if [[ $# -eq 0 && "$__argsparse_allow_no_argument" != yes ]]
+	then
+		return 1
+	fi
+
+	# 1. Analyze declared options to create getopt valid arguments.
+	for long in "${!__argsparse_options_descriptions[@]}"
+	do
+		if argsparse_has_option_property "$long" value
+		then
+			longs_array+=( "$long:" )
+		else
+			longs_array+=( "$long" )
+		fi
+	done
+
+	# 2. Create the long options string.
+	longs="$(__argsparse_join_array , "${longs_array[@]}")"
+
+	# 3. Create the short option string.
+	for short in "${!__argsparse_short_options[@]}"
+	do
+		if argsparse_has_option_property \
+			"${__argsparse_short_options[$short]}" value
+		then
+			shorts+="$short:"
+		else
+			shorts+=$short
+		fi
+	done
+
+	# 4. Invoke getopt and replace arguments.
+	if ! getopt_temp=$(getopt -s bash -n "$argsparse_pgm" \
+		--longoptions="$longs" "$shorts" "$@")
+	then
+		# Syntax error on the command implies returning with error.
+		return 1
+	fi
+	eval set -- "$getopt_temp"
+
+	# 5. Prepare exclusions stuff.
+	__argsparse_parse_options_prepare_exclude
+
+	# 6. Arguments parsing is really made here.
+	while [[ $# -ge 1 ]]
+	do
+		next_param=$1
+		shift
+		# The regular exit case.
+		if [[ "$next_param" = -- ]]
+		then
+			# Check how many parameters we have and if it's at least
+			# what we expects.
+			if [[ $# -lt "$__argsparse_minimum_parameters" ]]
+			then
+				printf >&2 \
+					"%s: not enough parameters (at least %d expected, %d provided)\n" \
+					"$argsparse_pgm" "$__argsparse_minimum_parameters" $#
+				return 1
+			elif [[ $# -gt "$__argsparse_maximum_parameters" ]]
+			then
+				printf >&2 \
+					"%s: too many parameters (maximum allowed is %d, %d provided)\n" \
+					"$argsparse_pgm" "$__argsparse_maximum_parameters" $#
+				return 1
+			fi
+			# Save program parameters in array
+			program_params=( "$@" )
+
+			# Apply default values here
+			for option in "${!__argsparse_options_default_values[@]}"
+			do
+				if ! argsparse_is_option_set "$option"
+				then
+					argsparse_set_option "$option" \
+						"${__argsparse_options_default_values[$option]}"
+				fi
+			done
+
+			# If some mandatory option have been omited by the user, then
+			# print some error, and invoke usage.
+			# Also checks requires chains.
+			__argsparse_check_missing_options && __argsparse_check_requires
+			return
+		fi
+		# If a short option was given, then we first convert it to its
+		# matching long name.
+		if [[ "$next_param" = -[!-] ]]
+		then
+			char=${next_param#-}
+			if ! next_param=$(argsparse_short_to_long "$char")
+			then
+				# Short option without equivalent long. According to
+				# current implementation, this should be considered as
+				# a bug.
+				printf >&2 \
+					"%s: -%s: option doesnt have any matching long option." \
+					"$argsparse_pgm" "$char"
+				return 1
+			fi
+		else
+			# Wasnt a short option. Just strip the leading dash.
+			next_param=${next_param#--}
+		fi
+		if exclude=$(__argsparse_parse_options_check_exclusions "$next_param")
+		then
+			printf >&2 \
+				"%s: %s: option excluded by other option (%s).\n" \
+				"$argsparse_pgm" "$next_param" "$exclude"
+			return 1
+		fi
+		# Set option value, if there should be one.
+		if argsparse_has_option_property "$next_param" value
+		then
+			value=$1
+			shift
+			if ! __argsparse_parse_options_valuecheck "$next_param" "$value"
+			then
+				printf >&2 "%s: %s: Invalid value for option %s.\n" \
+					"$argsparse_pgm" "$value" "$next_param"
+				return 1
+			fi
+		fi
+		# Invoke setting hook, and if it returns returns some non-zero
+		# status, send the user back to usage, if declared, and return
+		# with error.
+		# The specific $value substitution, here, is to distinguish an
+		# empty value from a no-value.
+		if ! __argsparse_set_option "$next_param" ${value+"$value"}
+		then
+			printf >&2 "%s: %s: Invalid value for %s option.\n" \
+				"$argsparse_pgm" "$value" "$next_param"
+			return 1
+		fi
+		unset value
+	done
+	return 0
+}
+
+if [[ ${ARGSPARSE_COMPLETION_MODE-} ]]
+then
+	shopt progcomp expand_aliases >/dev/null || exit 1
+	alias argsparse_parse_options='return 0 2>/dev/null || :'
+else
+## @fn argsparse_parse_options()
+## @brief Parse program options.
+## @details This function will make option parsing happen, and if an error
+## is detected, the usage() function will be invoked, if it has been
+## defined. If it's not defined, the function will return 1.
+## Parse options, and return if everything went fine.
+## @param parameters... should be the program arguments.
+## @retval 0 if the whole option parsing process went fine.
+## @retval 1 if an error is encoutered and usage does not perform an exit.
+argsparse_parse_options() {
+		unset __argsparse_tmp_identifiers || :
+		__argsparse_parse_options_no_usage "$@" && return
+		# Something went wrong, invoke usage function, if defined.
+		declare -f usage >/dev/null 2>&1 && usage
+		return 1
+}
+fi

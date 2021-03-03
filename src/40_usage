@@ -1,0 +1,227 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+# The usage-related functions.
+
+## @var Array __argsparse_parameters_description
+## @private
+## @brief Internal use only.
+## @ingroup ArgsparseUsage
+# @details Used by argsparse_describe_parameters() to store
+# non-option positionnal parameters short descriptions and by
+# argsparse_usage_short() to print them to end-users.
+declare -a __argsparse_parameters_description
+
+
+__argsparse_usage_short_line_management() {
+	[[ $# -eq 1 ]] || return 1
+	local next_token=$1
+	local max_length=78
+	local bigger_line
+	bigger_line="$current_line $next_token"
+	if [[ "${#bigger_line}" -gt "$max_length" ]]
+	then
+		printf -- '%s \\\n' "$current_line"
+		printf -v current_line "\t%s" "$next_token"
+	else
+		current_line=$bigger_line
+	fi
+}
+
+
+## @fn argsparse_usage_short()
+## @brief Print a short description of the program syntax.
+## @details Generate and print the "short" description of the program
+## usage.
+## @ingroup ArgsparseUsage
+argsparse_usage_short() {
+	local option values current_line current_option param
+	local max_length=78
+	current_line=$argsparse_pgm
+	for option in "${!__argsparse_options_descriptions[@]}"
+	do
+		if argsparse_has_option_property "$option" hidden
+		then
+			continue
+		fi
+		current_option="--$option"
+		if argsparse_has_option_property "$option" value
+		then
+			if values=$(__argsparse_values_array_identifier "$option")
+			then
+				current_option="$current_option <$(
+					__argsparse_join_array '|' "${!values}")>"
+			else
+				current_option="$current_option ${option^^}"
+			fi
+		fi
+		if ! argsparse_has_option_property "$option" mandatory
+		then
+			current_option="[ $current_option ]"
+		fi
+		__argsparse_usage_short_line_management "$current_option"
+	done
+	if __argsparse_has_array_item __argsparse_parameters_description @
+	then
+	   for param in "${__argsparse_parameters_description[@]}"
+	   do
+		   __argsparse_usage_short_line_management "$param"
+	   done
+	fi
+	printf -- "%s\n" "$current_line"
+}
+
+
+## @fn argsparse_describe_parameters()
+## @brief Describe non-option positionnal parameters.
+## @details This function has currently 2 purposes:
+## - enhance the "short" usage program description (see
+## argsparse_usage_short())
+## - compute the minimum and maximum numbers of non-option
+## positionnal parameters and will overwrite previous settings using
+## argsparse_minimum_parameters() and argsparse_maximum_parameters().
+##
+## @param param... a list of label describing positionnal
+## parameters. These labels can have special forms such as:
+## - "label?" a single optional non-repeatable parameter
+## - "label+" a non-empty list of parameters
+## - "label*" a potentially-empty list of parameters
+## - "label" a single non-optional non-repeatable parameter
+## @retval 0
+## @ingroup ArgsparseUsage
+argsparse_describe_parameters() {
+	[[ $# -eq 0 ]] && return
+	local param last name
+	local -i min=0 max=0
+	__argsparse_parameters_description=( "[--]" )
+	for param in "$@"
+	do
+		name=${param%?}
+		last=${param#$name}
+		case "$last" in
+			'?')
+				: maximum param $((++max))
+				__argsparse_parameters_description+=( "[ $name ]" )
+				;;
+			'*')
+				max=1000000
+				__argsparse_parameters_description+=( "[ $name ... ]" )
+				;;
+			+)
+				max=1000000
+				: minimum param $((++min))
+				__argsparse_parameters_description+=( "$name [ $name ... ]" )
+				;;
+			*)
+				: maximum param $((++max))
+				: minimum param $((++min))
+				__argsparse_parameters_description+=( "$param" )
+		esac
+	done
+	argsparse_minimum_parameters "$min"
+	argsparse_maximum_parameters "$max"
+}
+
+
+## @fn argsparse_usage_long()
+## @brief Fully describe the program syntax and options to the end-user.
+## @details This function generates and prints the "long" description
+## of the program usage. Print all options along with their
+## descriptions provided to argsparse_use_option().
+## @ingroup ArgsparseUsage
+argsparse_usage_long() {
+	local long short sep format array property propstring
+	local q=\' bol='\t\t  '
+	local -A long_to_short=()
+	local -a values
+	# Reverse the __argsparse_short_options array.
+	for short in "${!__argsparse_short_options[@]}"
+	do
+		long=${__argsparse_short_options["$short"]}
+		long_to_short["$long"]=$short
+	done
+	for long in "${!__argsparse_options_descriptions[@]}"
+	do
+		if argsparse_has_option_property "$long" hidden
+		then
+			continue
+		fi
+		# Pretty printer issue here. If the long option length is
+		# greater than 8, we just use next line to print the option
+		# description.
+		if [[ "${#long}" -le 9 ]]
+		then
+			sep=' '
+		else
+			sep="\n$bol"
+		fi
+		# Define format according to the presence of the short option.
+		if __argsparse_has_array_item long_to_short "$long"
+		then
+			short="${long_to_short[$long]}"
+			format=" -%s | %- 11s$sep%s\n"
+		else
+			short=""
+			format=" %s     %- 11s$sep%s\n"
+		fi
+		printf -- "$format" "$short" "--$long" \
+			"${__argsparse_options_descriptions["$long"]}"
+		if argsparse_has_option_property "$long" cumulative || \
+			argsparse_has_option_property "$long" cumulativeset
+		then
+			printf "${bol}Can be repeated.\n"
+		fi
+		if argsparse_has_option_property "$long" value
+		then
+			if array=$(__argsparse_values_array_identifier "$long")
+			then
+				values=( "${!array}" )
+				values=( "${values[@]/%/$q}" )
+				values=( "${values[@]/#/$q}" )
+				printf "${bol}Acceptable values: %s\n" \
+					"$(__argsparse_join_array " " "${values[@]}")"
+			fi
+			if __argsparse_index_of "$long" \
+				"${!__argsparse_options_default_values[@]}" >/dev/null
+			then
+				printf "${bol}Default: %s\n" \
+					"${__argsparse_options_default_values[$long]}"
+			fi
+		fi
+		local -A properties=([require]="Requires" [alias]="Same as")
+		for property in "${!properties[@]}"
+		do
+			if propstring=$(argsparse_has_option_property "$long" "$property")
+			then
+				read -a values <<<"$propstring"
+				values=( "${values[@]/#/--}" )
+				printf "${bol}%s: %s\n" \
+					"${properties[$property]}" "${values[*]}"
+			fi
+		done
+	done
+}
+
+## @var String argsparse_usage_description
+## @brief Usage description additionnal string.
+## @details The content of this variable will be appended to the
+## argsparse_usage() output.
+## @ingroup ArgsparseUsage
+declare argsparse_usage_description
+
+## @fn argsparse_usage()
+## @brief A generic help message generated from the options and their
+## descriptions.
+## @details Will print both a rather-short and a quite long
+## description of the program and its options. Just provided to be
+## wrapped in your own usage().
+## @ingroup ArgsparseUsage
+argsparse_usage() {
+	# There's still a lot of room for improvement here.
+	argsparse_usage_short
+	printf "\n"
+	# This will print option descriptions.
+	argsparse_usage_long
+	[[ -n "${argsparse_usage_description:-}" ]] && \
+		printf "\n%s\n" "$argsparse_usage_description" || :
+}

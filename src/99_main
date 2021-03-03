@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+return 0 >/dev/null 2>&1 ||:
+
+printf "The %s file is not a standalone program. It's a shell library.\n" \
+	"$argsparse_pgm"
+printf "%s\n" \
+	"To use it, you have to load it in your own bash" \
+	"shell scripts using the following line:"
+printf "\n. %q\n\n" "$0"

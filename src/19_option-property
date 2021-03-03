@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+## @brief Internal use only.
+## @details An associative array where options default values are
+## stored as soon as the 'default:' property is set.
+## @ingroup ArgsparseProperty
+declare -A __argsparse_options_default_values=()
+
+
+## @var AssociativeArray __argsparse_options_properties
+## @private
+## @brief Internal use only.
+## @ingroup ArgsparseProperty
+declare -A __argsparse_options_properties=()
+
+
+# Association short option -> long option.
+## @var AssociativeArray __argsparse_short_options
+## @private
+## @brief Internal use only.
+declare -A __argsparse_short_options=()
+
+
+# @fn __argsparse_optstring_has_short()
+# @brief Internal use only.
+# @details Prints the short option string suitable for getopt command
+# line.
+# @param optstring an optstring
+# @return non-zero if given optstring doesnt have any short option
+# equivalent.
+__argsparse_optstring_has_short() {
+	[[ $# -eq 1 ]] || return 1
+	local optstring=$1
+	if [[ "$optstring" =~ .*=(.).* ]]
+	then
+		printf %c "${BASH_REMATCH[1]}"
+		return 0
+	fi
+	return 1
+}
+
+
+## @fn argsparse_set_option_property()
+## @brief Enable a property to a list of options.
+## @param property a property name.
+## @param option... option names.
+## @return non-zero if property is not supported.
+## @ingroup ArgsparseProperty
+argsparse_set_option_property() {
+	[[ $# -ge 2 ]] || return 1
+	local property=$1
+	shift
+	local option p short
+	for option in "$@"
+	do
+		case "$property" in
+			cumulative|cumulativeset)
+				argsparse_set_option_property value "$option"
+				;;&
+			type:*|exclude:*|alias:*|require:*)
+				if [[ "$property" =~ ^.*:(.+)$ ]]
+				then
+					# If property has a value, check its format, we
+					# dont want any funny chars.
+					if [[ "${BASH_REMATCH[1]}" = *[*?!,]* ]]
+					then
+						printf >&2 "%s: %s: invalid property value.\n" \
+							"$argsparse_pgm" "${BASH_REMATCH[1]}"
+						return 1
+					fi
+				fi
+				;&
+			mandatory|hidden|value|cumulative|cumulativeset)
+				# We use the comma as the property character separator
+				# in the __argsparse_options_properties array.
+				p=${__argsparse_options_properties["$option"]:-}
+				__argsparse_options_properties["$option"]="${p:+$p,}$property"
+				;;
+			short:?)
+				short=${property#short:}
+				if __argsparse_has_array_item \
+					__argsparse_short_options "$short"
+				then
+					printf >&2 \
+						"%s: %s: short option for %s conflicts with already-configured short option for %s.\n" \
+						"$argsparse_pgm" "$short" "$option" \
+						"${__argsparse_short_options[$short]}"
+					return 1
+				fi
+				__argsparse_short_options["$short"]=$option
+				;;
+			default:*)
+				# The default value
+				__argsparse_options_default_values["$option"]=${property#default:}
+				;;
+			*)
+				return 1
+				;;
+		esac
+	done
+}
+
+## @fn argsparse_has_option_property()
+## @brief Determine if an option has a property.
+## @details Return True if property has been set for given option, and
+## print the property value, if available.
+## @param option an option name.
+## @param property a property name.
+## @retval 0 if option has given property.
+## @ingroup ArgsparseProperty
+argsparse_has_option_property() {
+	[[ $# -eq 2 ]] || return 1
+	local option=$1
+	local property=$2
+	local p=${__argsparse_options_properties["$option"]:-""}
+
+	if [[ "$p" =~ (^|.+,)"$property"(:([^,]+))?($|,.+) ]]
+	then
+		printf %s "${BASH_REMATCH[3]}"
+	elif [[ $property = default && \
+		"${__argsparse_options_default_values[$option]+yes}" = yes ]]
+	then
+			print %s "${__argsparse_options_default_values[$option]}"
+	else
+		return 1
+	fi
+}
+
+
+## @fn argsparse_short_to_long()
+## @brief
+## @param char a short option letter
+## @return if found, the long option name matching given short option
+## letter.
+argsparse_short_to_long() {
+	[[ $# -eq 1 ]] || return 1
+	local char=$1
+	local long=${__argsparse_short_options[$char]}
+	[[ -n "$long" ]] && printf %s "$long"
+}

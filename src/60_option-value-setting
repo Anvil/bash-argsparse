@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+# Following functions define the default option-setting hook and its
+# with/without value counter-parts. They can be referered in external
+# source code, though they should only be in user-defined
+# option-setting hooks.
+
+# All user-defined option-setting hook should be defined like
+# argsparse_set_option
+
+## @fn argsparse_set_option_without_value()
+## @brief The option-setting hook for options not accepting values.
+## @param option an option name.
+## @retval 0
+## @ingroup ArgsparseOptionSetter
+argsparse_set_option_without_value() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	: $((program_options["$option"]++))
+}
+
+## @fn argsparse_set_option_with_value()
+## @brief "value" property specific option-setting hook.
+## @param option an option name.
+## @param value the value put on command line for given option.
+## @ingroup ArgsparseOptionSetter
+argsparse_set_option_with_value() {
+	[[ $# -eq 2 ]] || return 1
+	local option=$1
+	local value=$2
+	program_options["$option"]=$value
+}
+
+## @fn argsparse_get_cumulative_array_name()
+## @param option an option name.
+## @brief Print the name of the array used for "cumulative" and
+## "cumulativeset" options.
+## @details For "option-name" usually prints
+## "cumulated_values_option_name".
+## @ingroup ArgsparseOptionSetter
+argsparse_get_cumulative_array_name() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	local ident=$(argsparse_option_to_identifier "$option")
+	printf "cumulated_values_%s" "$ident"
+}
+
+## @fn argsparse_set_cumulative_option()
+## @brief "cumulative" property specific option-setting hook.
+## @details Default action to take for cumulative options. Store @a
+## value into an array whose name is generated using
+## argsparse_get_cumulative_array_name().
+## @param option an option name.
+## @param value the value put on command line for given option.
+## @ingroup ArgsparseOptionSetter
+argsparse_set_cumulative_option() {
+	[[ $# -eq 2 ]] || return 1
+	local option=$1
+	local value=$2
+	local array="$(argsparse_get_cumulative_array_name "$option")"
+	local size temp="$array[@]"
+	local -a copy
+	if __argsparse_has_array_item "$array" 0
+	then
+		copy=( "${!temp}" )
+		size=${#copy[@]}
+	else
+		size=0
+	fi
+	printf -v "$array[$size]" %s "$value"
+	argsparse_set_option_without_value "$option"
+}
+
+## @fn argsparse_set_cumulativeset_option()
+## @param option an option name.
+## @param value a new value for the option.
+## @brief "cumulativeset" property specific option-setting hook.
+## @details Default action to take for cumulativeset options. Act
+## exactly like argsparse_set_cumulative_option() except that values
+## are not duplicated in the cumulated values array.
+## @ingroup ArgsparseOptionSetter
+argsparse_set_cumulativeset_option() {
+	[[ $# -eq 2 ]] || return 1
+	local option=$1
+	local value=$2
+	local array_name="$(argsparse_get_cumulative_array_name "$option")"
+	local array="$array_name[@]"
+	if ! __argsparse_has_array_item "$array_name" || \
+		   ! __argsparse_index_of "$value" "${!array}" >/dev/null
+	then
+		# The value is not already in the array, so add it.
+		argsparse_set_cumulative_option "$option" "$value"
+	fi
+}
+
+## @fn argsparse_set_alias()
+## @param option an option name.
+## @brief "alias" property specific option-setting hook.
+## @details When an option is an alias for other option(s), then set
+## the aliases options.
+## @ingroup ArgsparseOptionSetter
+argsparse_set_alias() {
+	# This option will set all options aliased by another.
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	local aliases
+	if ! aliases="$(argsparse_has_option_property "$option" alias)"
+	then
+		return 1
+	fi
+	while [[ "$aliases" =~ ^\ *([^\ ]+)(\ (.+))?\ *$ ]]
+	do
+		# At this point, BASH_REMATCH[1] is the first alias, and
+		# BASH_REMATCH[3] is the maybe-empty list of other aliases.
+		# __argsparse_set_option will alter BASH_REMATCH, so modify
+		# aliases first.
+		aliases=${BASH_REMATCH[3]}
+		__argsparse_set_option "${BASH_REMATCH[1]}"
+	done
+}
+
+
+## @fn argsparse_set_option()
+## @brief Default option-setting hook.
+## @param option The option being set.
+## @param value the value of the option (optional).
+## @details This function will be called by argsparse_parse_options()
+## whenever a given option is being set and no custom setting hook is
+## defined for said option. Depending of the properties of the option,
+## a more specific setting hook will be called.
+## @ingroup ArgsparseOptionSetter
+argsparse_set_option() {
+	[[ $# -eq 2 || $# -eq 1 ]] || return 1
+	local option=$1
+	if [[ $# -eq 2 ]]
+	then
+		local value=$2
+	fi
+	local property
+	local -A setters=(
+		[cumulative]=argsparse_set_cumulative_option
+		[cumulativeset]=argsparse_set_cumulativeset_option
+		[value]=argsparse_set_option_with_value
+	)
+
+	if ! argsparse_set_alias "$option"
+	then
+		# We dont use ${!setters[@]} here, because order matters.
+		for property in cumulative cumulativeset value
+		do
+			if argsparse_has_option_property "$option" "$property"
+			then
+				"${setters[$property]}" "$option" "$value"
+				return
+			fi
+		done
+		argsparse_set_option_without_value "$option"
+	fi
+}

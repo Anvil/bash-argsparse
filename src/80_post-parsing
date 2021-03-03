@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+## @fn argsparse_is_option_set()
+## @brief Return True if an option has been set on the command line.
+## @param option an option name.
+## @retval 0 if given option has been set on the command line.
+argsparse_is_option_set() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	[[ -n "${program_options[$option]+yes}" ]]
+}
+
+## @fn argsparse_report()
+## @brief Prints a basic report of all passed options
+## @details Kinda useful for a --debug, or a --verbose option,
+## this function will print options and their values.
+## @param option... A list of option name. If omitted all options
+## will be displayed.
+## @retval 0
+argsparse_report() {
+	local option array_name value
+	local length=$(__argsparse_max_length "${!__argsparse_options_descriptions[@]}")
+	local -a array options
+
+	if __argsparse_is_array_declared __argsparse_tmp_identifiers
+	then
+		# The test is a bit hacky, but it avoids implementing another
+		# mechanism.
+		printf "argsparse_parse_option was not ran yet.\n"
+	fi
+
+	if [[ $# -eq 0 ]]
+	then
+		options=( "${!__argsparse_options_descriptions[@]}" )
+	else
+		options=( "$@" )
+	fi
+	for option in "${options[@]}"
+	do
+		argsparse_has_option_property "$option" hidden && continue
+		printf "%- ${length}s\t: " "$option"
+		if argsparse_is_option_set "$option"
+		then
+			printf "yes (%s" "${program_options[$option]}"
+			if argsparse_has_option_property "$option" cumulative || \
+				argsparse_has_option_property "$option" cumulativeset
+			then
+				array_name="$(argsparse_get_cumulative_array_name "$option")[@]"
+				array=( "${!array_name}" )
+				printf ' time(s):'
+				for value in "${array[@]}"
+				do
+					printf ' %q' "$value"
+				done
+			fi
+			printf ')\n'
+		else
+			printf 'no\n'
+		fi
+	done
+}

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+# Default behaviour is not to accept empty command lines.
+__argsparse_allow_no_argument=no
+
+
+## @fn argsparse_allow_no_argument()
+## @brief Allow empty command lines to run.
+## @details Change argsparse behaviour for empty command
+## lines. Default says "no argument triggers usage".
+## @param string if (case-insensitive) "yes", "true" or "1", the value
+## is considered as affirmative. Anything else is a negative value.
+## @retval 0 unless there's more than one parameter (or none).
+## @ingroup ArgsparseParameter
+argsparse_allow_no_argument() {
+	[[ $# -eq 1 ]] || return 1
+	local param=$1
+	case "${param,,}" in
+		yes|true|1)
+			__argsparse_allow_no_argument=yes
+			;;
+		*)
+			__argsparse_allow_no_argument=no
+			;;
+	esac
+}
+
+
+## @brief Internal use only.
+## @details The default minimum parameters requirement for command line.
+## @ingroup ArgsparseParameter
+declare -i __argsparse_minimum_parameters=0
+
+
+## @brief Internal use only.
+## @details The default maximum parameters requirement for command
+## line. "Should be enough for everyone".
+## @ingroup ArgsparseParameter
+declare -i __argsparse_maximum_parameters=1000000
+
+
+## @fn argsparse_minimum_parameters()
+## @brief Set the minimum number of non-option parameters expected on
+## the command line.
+## @param unsigned_int a positive number.
+## @retval 0 if there is an unsigned integer is provided and is the
+## single parameter of this function.
+## @retval 1 in other cases.
+## @ingroup ArgsparseParameter
+argsparse_minimum_parameters() {
+	[[ $# -eq 1 ]] || return 1
+	local min=$1
+	[[ "$min" = +([0-9]) ]] || return 1
+	__argsparse_minimum_parameters=$min
+}
+
+## @fn argsparse_maximum_parameters()
+## @brief Set the maximum number of non-option parameters expected on
+## the command line.
+## @param unsigned_int a positive number.
+## @retval 0 if there is an unsigned integer is provided and is the
+## single parameter of this function.
+## @retval 1 in other cases.
+## @ingroup ArgsparseParameter
+argsparse_maximum_parameters() {
+	[[ $# -eq 1 ]] || return 1
+	local max=$1
+	[[ "$max" = +([0-9]) ]] || return 1
+	__argsparse_maximum_parameters=$max
+}

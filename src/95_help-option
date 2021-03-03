@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+## @fn usage()
+## @brief Default usage function.
+## @details The default usage function. By default, it will be called
+## by argsparse_parse_options() on error or if --help option provided by
+## user on the command line. It can easily be overwritten if it does not
+## suits your needs.
+## @return This function makes an @b exit with code 1
+## @ingroup ArgsparseUsage
+usage() {
+	argsparse_usage
+	exit 1
+}
+
+## @fn set_option_help()
+## @brief Default trigger for --help option.
+## @details Will actually only call usage().
+## @return Whatever usage() returns.
+## @ingroup ArgsparseUsage
+set_option_help() {
+	# This is the default hook for the --help option.
+	usage
+}
+
+# We do define a default --help option.
+argsparse_use_option "=help" "Show this help message"

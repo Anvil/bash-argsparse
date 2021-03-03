@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# -*- tab-width: 4; encoding: utf-8; -*-
+
+## @fn argsparse_option_to_identifier()
+## @brief Give the identifier name associated to an option.
+## @details Transforms and prints an option name into a string which
+## suitable to be part of a function or a variable name.
+## @param option an option name.
+## @ingroup ArgsparseUtils
+argsparse_option_to_identifier() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	printf %s "${option//-/_}"
+}
+
+
+## @fn __argsparse_values_array_identifier()
+## @private
+## @brief Prints the name of the array containing all user-declared
+## acceptable values for an option.
+## @details from "opt" or "opt-name" string, prints
+## "option_opt_values[@]" or "option_opt_name_values[@]", unless array
+## is not declared, in which case function will return an error.
+## @param option an option name.
+## @retval 1 if array has not been declared
+## @retval 0 else. Array name will be written to stdout.
+## @ingroup ArgsparseUtils
+__argsparse_values_array_identifier() {
+	local option=$1
+	local array="option_$(argsparse_option_to_identifier "$option")_values"
+	__argsparse_is_array_declared "$array" || return 1
+	printf %s'[@]' "$array"
+}
