@@ -199,6 +199,11 @@ argsparse_usage_long() {
 					"${properties[$property]}" "${values[*]}"
 			fi
 		done
+		if argsparse_are_environment_variables_enabled
+		then
+			printf "${bol}Environment variable: %s\n" \
+				"$(argsparse_option_environment_variable_name "$long")"
+		fi
 	done
 }
 
