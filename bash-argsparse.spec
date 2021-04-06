@@ -25,7 +25,7 @@ will fail at interpreting that code.
 %setup -q
 
 %build
-# Nothing to build, except the documentation.
+./make
 doxygen
 
 %install
