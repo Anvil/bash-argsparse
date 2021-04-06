@@ -22,3 +22,18 @@ printf "You are currently in %s directory and completion is enabled.\\\\n" \
 printf "Try:\\\n\\\\n./1-basics -<tab><tab>\\\\n\\\\n"
 EOF
 exec bash --rcfile <(printf %s "$bashrc") -i
+
+cat <<EOF
+
+As you can see, the Bash Argsparse Completion module can automatically
+enable the bash completion for the scripts you develop with the Bash
+Argsparse library.
+
+To enable completion for your own scripts, please ensure
+bash_completion is enabled, and then in your ~/.bashrc, add lines such
+as:
+
+    . argsparse-completion.sh
+    complete -F _argsparse_complete yourscript your_other_script
+
+EOF
