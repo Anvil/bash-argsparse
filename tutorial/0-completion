@@ -6,6 +6,7 @@ tutorial_directory=${BASH_SOURCE[0]%/*}
 # just enable programmable completion for other tutorial scripts and
 # invoke an interactive shell
 read -N 4096 bashrc <<EOF
+. /etc/profile
 shopt -s progcomp sourcepath
 PATH="$PATH:$tutorial_directory"
 . "$tutorial_directory/../argsparse-completion.sh"
