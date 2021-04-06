@@ -5,3 +5,5 @@ debian/bash-argsparse*
 debian/files
 debian/debhelper-build-stamp
 unittest.log
+\#*
+.\#*
