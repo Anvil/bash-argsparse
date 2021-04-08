@@ -1123,6 +1123,11 @@ argsparse_usage_long() {
 					"${properties[$property]}" "${values[*]}"
 			fi
 		done
+		if argsparse_are_environment_variables_enabled
+		then
+			printf "${bol}Environment variable: %s\n" \
+				"$(argsparse_option_environment_variable_name "$long")"
+		fi
 	done
 }
 
@@ -1377,6 +1382,146 @@ argsparse_maximum_parameters() {
 	local max=$1
 	[[ "$max" = +([0-9]) ]] || return 1
 	__argsparse_maximum_parameters=$max
+}
+
+
+## @var String __argsparse_environment_variable_prefix
+## @brief The prefix for option-setting environment variables
+## @private
+## @ingroup ArgsparseOptionSetter
+declare __argsparse_environment_variable_prefix
+
+
+## @fn argsparse_use_environment_variables()
+## @brief Enable option setting through environment variables.
+## @details
+## Once enabled, it cannot be disabled.
+## @param prefix an environment variable prefix
+## @ingroup ArgsparseOptionSetter
+argsparse_use_environment_variables() {
+	local prefix
+	case $# in
+		0)
+			prefix=$(argsparse_option_to_identifier "${argsparse_pgm%.sh}")
+			prefix=${prefix^^}
+			;;
+		1)
+			prefix=$1
+			;;
+		*)
+			return 1
+	esac
+	__argsparse_environment_variable_prefix=$prefix
+}
+
+
+## @fn argsparse_are_environment_variables_enabled()
+## @brief Tell if option setting through environment variables is
+## enabled or not.
+## @details
+## @retval 0 if argsparse_parse_options would also retrieve option
+## values from environment variables.
+## @ingroup @ArgsparseOptionSetter
+argsparse_are_environment_variables_enabled() {
+	[[ ${__argsparse_environment_variable_prefix:-} ]]
+}
+
+
+## @fn argsparse_option_environment_variable_name()
+## @brief Give the environment variable name linked to an option
+## @details
+## Return the name of the environment variable name that can be used
+## to set a given option. Works whether option setting through
+## environment variables is enabled or not.
+## @param option an option name
+## @return the environment variable name linked to the option
+argsparse_option_environment_variable_name() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	local identifier=$(argsparse_option_to_identifier "$option")
+	printf %s_%s "$__argsparse_environment_variable_prefix" "${identifier^^}"
+}
+
+
+## @fn argsparse_option_environment_variable()
+## @brief Give the content of the environment variable that can be
+## used to set a given option.
+## @details
+## Does not check if option setting through environment variable is
+## enabled or not.
+## @param option An option name
+## @return The content of the environment variable that matches the
+## given option.
+## @retval 0 if the variable that matches the given option actually
+## exists (even if its value is empty)
+argsparse_option_environment_variable() {
+	[[ $# -eq 1 ]] || return 1
+	local option=$1
+	local var=$(argsparse_option_environment_variable_name "$option")
+	if [[ -v $var ]]; then
+		printf %s "${!var}"
+		return 0
+	fi
+	return 1
+}
+
+
+## @fn argsparse_set_option_from_environment_value()
+## @brief Give a value to an option, from environment variable value.
+## @details
+## Options can be set from environment variables, and in some cases,
+## those values have special meanings:
+## - 0, "false", "no" and the empty string are explicit values to
+## disable a non-valued option
+## - (probably more to come)
+## .
+## @param option an option name
+## @param value the value, as found in the process environment, to set
+## the option to.
+argsparse_set_option_from_environment_value() {
+	[[ $# -eq 2 ]] || return 1
+	local option=$1
+	local value=$2
+	if ! argsparse_has_option_property "$option" value
+	then
+		if [[ $value != +(0|false|no|"") ]]
+		then
+			argsparse_set_option "$option"
+		fi
+	# There should be an elif statement here, if we want to consider
+	# cumulated options differently.
+	else
+		argsparse_set_option "$option" "$value"
+	fi
+}
+
+
+## @fn __argsparse_parse_options_env_and_defaults()
+## @brief set options from environment and from default values.
+## @details
+## For every option that have not been set from command line, look for
+## a matching environment variable (when
+## argsparse_are_environment_variables_enabled() is true) and apply
+## default values right after if still left unset.
+## @private
+__argsparse_parse_options_env_and_defaults() {
+	local option value
+	for option in "${!__argsparse_options_descriptions[@]}"
+	do
+		if ! argsparse_is_option_set "$option"
+		then
+			if argsparse_are_environment_variables_enabled &&
+					value=$(argsparse_option_environment_variable "$option")
+			then
+				argsparse_set_option_from_environment_value "$option" "$value"
+			elif __argsparse_has_array_item \
+					 __argsparse_options_default_values "$option"
+			then
+				 argsparse_set_option "$option" \
+					"${__argsparse_options_default_values[$option]}"
+			fi
+		fi
+	done
 }
 
 
@@ -1651,15 +1796,8 @@ __argsparse_parse_options_no_usage() {
 			# Save program parameters in array
 			program_params=( "$@" )
 
-			# Apply default values here
-			for option in "${!__argsparse_options_default_values[@]}"
-			do
-				if ! argsparse_is_option_set "$option"
-				then
-					argsparse_set_option "$option" \
-						"${__argsparse_options_default_values[$option]}"
-				fi
-			done
+			# Retrieve values from environment and set matching options
+			__argsparse_parse_options_env_and_defaults
 
 			# If some mandatory option have been omited by the user, then
 			# print some error, and invoke usage.
