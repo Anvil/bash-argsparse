@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # -*- tab-width: 4; encoding: utf-8; -*-
 
+## @var String ARGSPARSE_GETOPT_BIN
+## @brief The getopt binary
+## @details
+## User can export this variable to override the getopt binary
+## location.
+declare ARGSPARSE_GETOPT_BIN=${ARGSPARSE_GETOPT_BIN:-getopt}
+
+
 ## @var AssociativeArray program_options
 ## @brief Options values.
 ## @details
@@ -235,7 +243,7 @@ __argsparse_parse_options_no_usage() {
 	done
 
 	# 4. Invoke getopt and replace arguments.
-	if ! getopt_temp=$(getopt -s bash -n "$argsparse_pgm" \
+	if ! getopt_temp=$("$ARGSPARSE_GETOPT_BIN" -s bash -n "$argsparse_pgm" \
 		--longoptions="$longs" "$shorts" "$@")
 	then
 		# Syntax error on the command implies returning with error.
