@@ -9,7 +9,7 @@ BuildArch: noarch
 # Binaries are required for unittest to perform cleanly.
 BuildRequires: doxygen glibc-common util-linux /usr/bin/host
 
-Requires: bash >= 4.1
+Requires: bash >= 4.2
 Requires: util-linux glibc-common /usr/bin/host
 
 %description
@@ -91,4 +91,3 @@ for file in argsparse argsparse-completion; do
 
 * Thu Mar 14 2013 Dams <bash-argsparse[AT]livna.org> - 1.4-0
 - Initial build.
-
