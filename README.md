@@ -7,7 +7,7 @@ Inspired, by the python argparse module, bash-argsparse purpose is to
 replace the option-parsing and usage-describing functions commonly
 rewritten in all scripts.
 
-This library is implemented for GNU bash version >= 4.1. Prior
+This library is implemented for GNU bash version >= 4.2. Prior
 versions of bash will fail at interpreting that code.
 
 
