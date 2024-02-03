@@ -7,4 +7,3 @@ debian/debhelper-build-stamp
 unittest.log
 \#*
 .\#*
-.idea/
