@@ -697,6 +697,77 @@ argsparse_short_to_long() {
 ## @brief Internal use only.
 declare -A __argsparse_options_descriptions=()
 
+# This is an array of option names, in the order they have been
+# declared.
+declare -a __argsparse_options_ordered=()
+
+#######################################
+# Sets the order in which options are shown in usage.  The default order is
+# 'declaration', which is the order in which each option is declared.  The
+# other options are 'alphabetical' and 'short_flags_first'.
+# alphabetical: sort the options alphabetically
+# declaration: use the order in which the options are declared
+# short_flags_first: sort the options so that short flags come first and are sorted, then
+#   long flags, sorted.
+#
+# Globals:
+#   __argsparse_options_ordered
+# Arguments:
+#   1 - sort order. Either "alphabetical", "declaration", or "short_flags_first"
+# Returns:
+#   1 if wrong number of parameters or unknown sort order.
+#######################################
+argsparse_set_sort_order_for_options() {
+  if [[ $# -ne 1 ]]; then
+    printf >&2 "%s: %s: wrong number of parameters.\n" \
+      "$argsparse_pgm" "${FUNCNAME[0]}"
+    return 1
+  fi
+  local sort_order=$1
+
+  if [[ $sort_order == "alphabetical" ]]; then
+    readarray -t __argsparse_options_ordered < <(printf "%s\n" "${__argsparse_options_ordered[@]}" | sort)
+  elif [[ $sort_order == "declaration" ]]; then
+    # Do nothing - already in declaration order.
+    :
+  elif [[ $sort_order == "short_flags_first" ]]; then
+    # Sort the options so that short flags come first, then long flags, then
+    # everything else.
+    local short_flags_sorted
+    readarray -t short_flags_sorted < <(printf "%s\n" "${!__argsparse_short_options[@]}" | sort)
+
+    local short_flag
+    __argsparse_options_ordered=()
+    for short_flag in "${short_flags_sorted[@]}"; do
+      __argsparse_options_ordered+=("${__argsparse_short_options[$short_flag]}")
+    done
+
+    local long_flags_sorted
+    readarray -t long_flags_sorted < <(printf "%s\n" "${!__argsparse_options_descriptions[@]}" | sort)
+
+    local long_flag
+    for long_flag in "${long_flags_sorted[@]}"; do
+      local option_name
+      local found=0
+      for option_name in "${__argsparse_options_ordered[@]}"; do
+        if [[ $option_name == $long_flag ]]; then
+          found=1
+          break
+        fi
+      done
+
+      if [[ $found -eq 0 ]]; then
+        __argsparse_options_ordered+=("$long_flag")
+      fi
+
+    done
+  else
+    printf >&2 "%s: %s: unknown sort order.\n" \
+      "$argsparse_pgm" "${FUNCNAME[0]}"
+    return 1
+  fi
+}
+
 # @fn __argsparse_check_declaration_conflict()
 # @brief Internal use.
 # @details Check if an option conflicts with another and, if it does,
@@ -776,6 +847,7 @@ argsparse_use_option() {
   fi
 
   __argsparse_options_descriptions["$long"]=$description
+  __argsparse_options_ordered+=("$long")
 
   # Any other parameter to this function should be a property.
   while [[ $# -ne 0 ]]; do
@@ -920,7 +992,7 @@ argsparse_usage_short() {
   local option values current_line current_option param
   local max_length=78
   current_line=$argsparse_pgm
-  for option in "${!__argsparse_options_descriptions[@]}"; do
+  for option in "${__argsparse_options_ordered[@]}"; do
     if argsparse_has_option_property "$option" hidden; then
       continue
     fi
@@ -1013,7 +1085,7 @@ argsparse_usage_long() {
     long=${__argsparse_short_options["$short"]}
     long_to_short["$long"]=$short
   done
-  for long in "${!__argsparse_options_descriptions[@]}"; do
+  for long in "${__argsparse_options_ordered[@]}"; do
     if argsparse_has_option_property "$long" hidden; then
       continue
     fi
