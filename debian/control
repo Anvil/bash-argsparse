@@ -7,6 +7,7 @@ Build-Depends: debhelper (>= 7.0.50), doxygen
 Package: bash-argsparse
 Architecture: all
 Depends: bash (>= 4), util-linux
+Homepage: https://github.com/Anvil/bash-argsparse
 Description: An high level argument parsing library for bash 
  An high level argument parsing library for bash.
  .
