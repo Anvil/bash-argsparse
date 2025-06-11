@@ -1341,6 +1341,33 @@ argsparse_allow_no_argument() {
 }
 
 
+# Default behaviour is to continue parsing options after a non-option parameter
+# is encountered.
+__argsparse_scanning_mode=""
+
+
+## @fn argsparse_options_first()
+## @brief Stop parsing options once a non-option parameter is encountered.
+## @details Change argsparse behaviour to require that options
+## precede non-options.  Default is to ignore order.
+## @param string if (case-insensitive) "yes", "true" or "1", the value
+## is considered as affirmative. Anything else is a negative value.
+## @retval 0 unless there's more than one parameter (or none).
+## @ingroup ArgsparseParameter
+argsparse_options_first() {
+	[[ $# -eq 1 ]] || return 1
+	local param=$1
+	case "${param,,}" in
+		yes|true|1)
+			__argsparse_scanning_mode="+"
+			;;
+		*)
+			__argsparse_scanning_mode=""
+			;;
+	esac
+}
+
+
 ## @brief Internal use only.
 ## @details The default minimum parameters requirement for command line.
 ## @ingroup ArgsparseParameter
@@ -1760,7 +1787,7 @@ __argsparse_parse_options_no_usage() {
 
 	# 4. Invoke getopt and replace arguments.
 	if ! getopt_temp=$(getopt -s bash -n "$argsparse_pgm" \
-		--longoptions="$longs" "$shorts" "$@")
+		--longoptions="$longs" "$__argsparse_scanning_mode$shorts" "$@")
 	then
 		# Syntax error on the command implies returning with error.
 		return 1
