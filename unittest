@@ -172,6 +172,16 @@ parse_option_wrapper() {
 )
 
 (
+	argsparse_use_option option1 ""
+
+	argsparse_options_first yes
+	parse_option_wrapper "stop at nonoption" --option1 nonoption --invalid
+
+	argsparse_options_first no
+	TEST=failure parse_option_wrapper "don't stop at nonoption" --option1 nonoption --invalid
+)
+
+(
 	argsparse_use_option =shortcut ""
 	parse_option_wrapper "= in optstring" -s
 )
