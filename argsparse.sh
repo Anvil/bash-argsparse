@@ -299,6 +299,16 @@ fi
 ## @showinitializer
 declare -r ARGSPARSE_VERSION=1.8
 
+
+## @var ARGSPARASE_GNU_GETOPT
+## @brief the location of the GNU getopt program.
+## @details If empty (the default), a PATH lookup will be
+## performed. When specified, it should be an absolute-path reference
+## as current working directory invariance is not guaranteed.
+## @showinitializer
+declare ARGSPARSE_GNU_GETOPT=${ARGSPARSE_GNU_GETOPT:-getopt}
+
+
 # Enable required features
 shopt -s extglob
 set +o posix
@@ -1710,6 +1720,7 @@ __argsparse_parse_options_valuecheck() {
 	return 0
 }
 
+
 ## @fn __argsparse_parse_options_no_usage()
 ## @brief Parse options without triggering usage
 __argsparse_parse_options_no_usage() {
@@ -1759,7 +1770,7 @@ __argsparse_parse_options_no_usage() {
 	done
 
 	# 4. Invoke getopt and replace arguments.
-	if ! getopt_temp=$(getopt -s bash -n "$argsparse_pgm" \
+	if ! getopt_temp=$("${ARGSPARSE_GNU_GETOPT}" -s bash -n "$argsparse_pgm" \
 		--longoptions="$longs" "$shorts" "$@")
 	then
 		# Syntax error on the command implies returning with error.
